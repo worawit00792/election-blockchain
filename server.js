@@ -27,7 +27,9 @@ const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const ALLOWED_DOMAIN       = "ubu.ac.th";
-const REDIRECT_URI         = `http://127.0.0.1:${PORT}/auth/google/callback`;
+const REDIRECT_URI = process.env.RENDER_EXTERNAL_URL 
+  ? `${process.env.RENDER_EXTERNAL_URL}/auth/google/callback`
+  : `http://127.0.0.1:${PORT}/auth/google/callback`;
 
 let provider, wallet, contract, contractABI, contractAddress;
 
