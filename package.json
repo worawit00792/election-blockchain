@@ -1,0 +1,27 @@
+{
+  "name": "election-blockchain",
+  "version": "1.0.0",
+  "description": "UBU Election System with Solidity Blockchain",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "node": "npx hardhat node",
+    "deploy": "npx hardhat run scripts/deploy.js --network localhost",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "ethers": "^6.9.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "hardhat": "^2.22.0",
+    "@nomicfoundation/hardhat-ethers": "^3.1.0",
+    "@nomicfoundation/hardhat-chai-matchers": "hh2",
+    "chai": "^4.2.0"
+  }
+}

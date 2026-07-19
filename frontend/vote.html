@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ลงคะแนนเลือกตั้ง – สภานักศึกษา 2570</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="vote">
+<nav class="navbar"><div class="container navbar-inner">
+  <a href="/home.html" class="nav-logo"><img src="/images/ubu-logo.png" alt="UBU" style="height:48px;width:auto;object-fit:contain"><div><div class="logo-main">เลือกตั้งสภานักศึกษา</div><div class="logo-sub">มหาวิทยาลัยอุบลราชธานี 2570</div></div></a>
+  <div class="nav-links"><a href="/home.html" class="nav-link">หน้าหลัก</a><a href="/candidates.html" class="nav-link">ผู้สมัคร</a><a href="/results.html" class="nav-link">ผลคะแนน</a></div>
+  <div id="nav-auth" class="nav-auth"></div>
+</div></nav>
+<div class="page-body">
+  <div style="background:linear-gradient(135deg,var(--navy),var(--royal));padding:56px 0 48px">
+    <div class="container-sm" style="text-align:center">
+      <div class="badge-live" style="margin-bottom:14px;display:inline-flex">เปิดรับลงคะแนน</div>
+      <h1 style="color:#fff;font-size:38px;margin-bottom:10px">ลงคะแนนเลือกตั้ง</h1>
+      <p style="color:rgba(255,255,255,.55)">เลือกผู้สมัครที่คุณไว้วางใจได้ 1 คน — บันทึกบน Solidity Smart Contract</p>
+    </div>
+  </div>
+  <div style="padding:48px 0"><div class="container-sm">
+    <div id="vote-candidates" style="display:flex;flex-direction:column;gap:16px;margin-bottom:32px">
+      <div style="text-align:center;padding:40px;color:var(--g400)">กำลังโหลด...</div>
+    </div>
+    <div style="text-align:center">
+      <button id="vote-submit-btn" class="btn btn-primary btn-lg" onclick="openVoteConfirm()" disabled style="padding:16px 56px;font-size:17px;opacity:.45">ยืนยันการลงคะแนน</button>
+      <p style="color:var(--g400);font-size:13px;margin-top:12px">กรุณาเลือกผู้สมัครก่อนกดยืนยัน</p>
+    </div>
+  </div></div>
+</div>
+<div class="modal-overlay" id="vote-modal">
+  <div class="modal-box">
+    <div style="text-align:center;margin-bottom:22px">
+      <div style="font-size:52px;margin-bottom:14px">🗳️</div>
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:8px">ยืนยันการลงคะแนน</h2>
+      <p style="color:var(--g500);font-size:14px">คะแนนจะถูกบันทึกบน Solidity Smart Contract ทันที</p>
+    </div>
+    <div class="alert alert-warn" style="margin-bottom:20px">⚠️ การลงคะแนนไม่สามารถเปลี่ยนแปลงได้ เมื่อบันทึกลง Blockchain แล้ว</div>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('vote-modal')">ยกเลิก</button>
+      <button id="m-confirm-btn" class="btn btn-primary" style="flex:1;justify-content:center" onclick="submitVote()">ยืนยันการลงคะแนน ✓</button>
+    </div>
+  </div>
+</div>
+<div id="toast-container" class="toast-wrap"></div>
+<script src="/js/main.js"></script>
+</body></html>

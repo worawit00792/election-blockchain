@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>หน้าหลัก – เลือกตั้งสภานักศึกษา มหาวิทยาลัยอุบลราชธานี 2570</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="home">
+<nav class="navbar"><div class="container navbar-inner">
+  <a href="/home.html" class="nav-logo">
+    <img src="/images/ubu-logo.png" alt="UBU" style="height:48px;width:auto;object-fit:contain">
+    <div><div class="logo-main">เลือกตั้งสภานักศึกษา</div><div class="logo-sub">มหาวิทยาลัยอุบลราชธานี 2570</div></div>
+  </a>
+  <div class="nav-links">
+    <a href="/home.html" class="nav-link active">หน้าหลัก</a>
+    <a href="/candidates.html" class="nav-link">ผู้สมัคร</a>
+    <a href="/results.html" class="nav-link">ผลคะแนน</a>
+    <a href="/blockchain.html" class="nav-link blockchain-link" style="display:none">Blockchain</a>
+  </div>
+  <div id="nav-auth" class="nav-auth"></div>
+</div></nav>
+
+<section class="hero page-body">
+  <div class="hero-grid"></div>
+  <div class="hero-glow hero-gl1"></div>
+  <div class="hero-glow hero-gl2"></div>
+  <div style="position:absolute;inset:0;z-index:1">
+    <img src="/images/hero-candidates.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;opacity:0.55">
+    <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,22,40,.92) 0%,rgba(10,22,40,.75) 40%,rgba(10,22,40,.2) 65%,transparent 100%)"></div>
+  </div>
+  <div class="container" style="width:100%;position:relative;z-index:2">
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:36px;align-items:center;padding:32px 0 36px">
+      <div style="max-width:500px">
+        <div class="hero-eyebrow"><div class="hero-eyebrow-dot"></div><span>เปิดรับลงคะแนน 1 – 7 มิถุนายน 2570</span></div>
+        <h1 style="color:#fff;font-size:54px;font-weight:900;line-height:1.15;margin-bottom:16px">อนาคตของเรา<br><span style="background:linear-gradient(135deg,#93c5fd,#60a5fa,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">เริ่มต้นที่เสียงของคุณ</span></h1>
+        <p style="color:rgba(255,255,255,.75);font-size:15px;line-height:1.7;margin-bottom:22px">ร่วมกันสร้างมหาวิทยาลัยที่ดีกว่า ด้วยการเลือกตัวแทนที่มีวิสัยทัศน์</p>
+        <a href="/login.html?next=/vote.html" id="hero-vote-btn" class="btn btn-primary" style="padding:12px 28px;font-size:15px">🗳️ ลงคะแนนเลยตอนนี้</a>
+      </div>
+      <div style="background:rgba(10,22,40,.78);border:1px solid rgba(255,255,255,.12);border-radius:var(--r-xl);padding:18px 20px;backdrop-filter:blur(16px)">
+        <div style="color:#fff;font-size:15px;font-weight:800;margin-bottom:14px">ภาพรวมการเลือกตั้ง</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)">
+          <div style="width:34px;height:34px;border-radius:9px;background:rgba(37,99,235,.2);display:flex;align-items:center;justify-content:center">👥</div>
+          <div><div style="color:#fff;font-size:20px;font-weight:800">4</div><div style="color:rgba(255,255,255,.4);font-size:11px">ผู้สมัครทั้งหมด</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)">
+          <div style="width:34px;height:34px;border-radius:9px;background:rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center">✅</div>
+          <div><div style="color:#fff;font-size:20px;font-weight:800">2,450</div><div style="color:rgba(255,255,255,.4);font-size:11px">นักศึกษามีสิทธิ์ลงคะแนน</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)">
+          <div style="width:34px;height:34px;border-radius:9px;background:rgba(245,158,11,.2);display:flex;align-items:center;justify-content:center">🗳️</div>
+          <div><div style="color:#fff;font-size:20px;font-weight:800" id="total-votes-hero">0</div><div style="color:rgba(255,255,255,.4);font-size:11px">ลงคะแนนแล้ว</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
+          <div style="width:34px;height:34px;border-radius:9px;background:rgba(124,58,237,.2);display:flex;align-items:center;justify-content:center">⛓️</div>
+          <div><div style="color:#fff;font-size:20px;font-weight:800">Solidity</div><div style="color:rgba(255,255,255,.4);font-size:11px">Smart Contract Blockchain</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding:48px 0 64px;background:#fff">
+<div class="container">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:40px;flex-wrap:wrap;gap:16px">
+    <div>
+      <h2 style="font-size:32px;font-weight:800;color:var(--navy);margin-bottom:6px">ผู้สมัครทั้งหมด</h2>
+      <p style="color:var(--g500);font-size:15px">เลือกดูผู้สมัครและนโยบายของแต่ละทีม</p>
+    </div>
+  </div>
+  <div id="candidates-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+    <div style="text-align:center;padding:40px;color:var(--g400)">กำลังโหลด...</div>
+  </div>
+</div>
+</section>
+
+<section style="padding:64px 0;background:var(--g50)">
+<div class="container">
+  <div style="text-align:center;margin-bottom:48px">
+    <h2 style="font-size:32px;font-weight:800;color:var(--navy)">วิธีการเลือกตั้ง</h2>
+    <p style="color:var(--g500);margin-top:8px">ง่าย โปร่งใส ปลอดภัยด้วย Solidity Smart Contract</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:22px">
+    <div class="step-card"><div class="step-icon" style="background:#dbeafe">🔐</div><div class="step-num" style="color:var(--blue)">ขั้นตอนที่ 1</div><h3 style="font-size:20px;margin-bottom:8px">เข้าสู่ระบบ</h3><p style="color:var(--g500);font-size:14px">ใช้อีเมล @ubu.ac.th เพื่อยืนยันตัวตน</p></div>
+    <div class="step-card"><div class="step-icon" style="background:#d1fae5">👤</div><div class="step-num" style="color:var(--green)">ขั้นตอนที่ 2</div><h3 style="font-size:20px;margin-bottom:8px">ดูผู้สมัคร</h3><p style="color:var(--g500);font-size:14px">ศึกษานโยบายและประวัติผู้สมัคร</p></div>
+    <div class="step-card"><div class="step-icon" style="background:#fef3c7">🗳️</div><div class="step-num" style="color:var(--gold)">ขั้นตอนที่ 3</div><h3 style="font-size:20px;margin-bottom:8px">ลงคะแนน</h3><p style="color:var(--g500);font-size:14px">เลือกผู้สมัครที่คุณไว้วางใจ</p></div>
+    <div class="step-card"><div class="step-icon" style="background:#ede9fe">⛓️</div><div class="step-num" style="color:var(--purple)">ขั้นตอนที่ 4</div><h3 style="font-size:20px;margin-bottom:8px">บันทึก Blockchain</h3><p style="color:var(--g500);font-size:14px">Smart Contract บันทึกทันที ตรวจสอบได้</p></div>
+  </div>
+</div>
+</section>
+
+<footer style="background:var(--navy);padding:36px 0">
+<div class="container" style="text-align:center">
+  <p style="color:rgba(255,255,255,.28);font-size:13px">© 2570 การเลือกตั้งสภานักศึกษา มหาวิทยาลัยอุบลราชธานี &bull; Powered by Solidity Smart Contract</p>
+</div>
+</footer>
+
+<div id="toast-container" class="toast-wrap"></div>
+<script src="/js/main.js"></script>
+<script>
+api('/api/stats').then(d=>{const el=document.getElementById('total-votes-hero');if(el)el.textContent=d.totalVotes||0;}).catch(()=>{});
+</script>
+</body></html>

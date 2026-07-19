@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ผลการเลือกตั้ง – สภานักศึกษา 2570</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="results">
+<nav class="navbar"><div class="container navbar-inner">
+  <a href="/home.html" class="nav-logo"><img src="/images/ubu-logo.png" alt="UBU" style="height:48px;width:auto;object-fit:contain"><div><div class="logo-main">เลือกตั้งสภานักศึกษา</div><div class="logo-sub">มหาวิทยาลัยอุบลราชธานี 2570</div></div></a>
+  <div class="nav-links"><a href="/home.html" class="nav-link">หน้าหลัก</a><a href="/candidates.html" class="nav-link">ผู้สมัคร</a><a href="/results.html" class="nav-link active">ผลคะแนน</a><a href="/blockchain.html" class="nav-link blockchain-link" style="display:none">Blockchain</a></div>
+  <div id="nav-auth" class="nav-auth"></div>
+</div></nav>
+<div class="page-body">
+  <div style="background:linear-gradient(135deg,var(--navy),var(--royal));padding:56px 0 48px">
+    <div class="container">
+      <div class="badge-live" style="margin-bottom:12px;display:inline-flex">อัปเดตแบบ Real-time</div>
+      <h1 style="color:#fff;font-size:40px;margin-bottom:6px">ผลคะแนนเลือกตั้ง</h1>
+      <p style="color:rgba(255,255,255,.5)">ข้อมูลจาก Solidity Smart Contract บน Blockchain</p>
+    </div>
+  </div>
+  <div style="padding:48px 0"><div class="container">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:36px">
+      <div class="stat-card" style="border-left:4px solid var(--blue)"><div class="stat-label">ลงคะแนนแล้ว</div><div class="stat-value" style="color:var(--green)" id="total-votes">0</div></div>
+      <div class="stat-card" style="border-left:4px solid var(--gold)"><div class="stat-label">ผู้มีสิทธิ์ทั้งหมด</div><div class="stat-value" style="color:var(--navy)">2,450</div></div>
+      <div class="stat-card" style="border-left:4px solid var(--purple)"><div class="stat-label">Blockchain</div><div class="stat-value" style="color:var(--purple);font-size:18px">Solidity ✓</div></div>
+    </div>
+    <div class="stat-card">
+      <h3 style="font-size:18px;margin-bottom:24px">คะแนนแต่ละทีม</h3>
+      <div id="results-container"><div style="text-align:center;padding:40px;color:var(--g400)">กำลังโหลด...</div></div>
+    </div>
+  </div></div>
+</div>
+<div id="toast-container" class="toast-wrap"></div>
+<script src="/js/main.js"></script>
+</body></html>

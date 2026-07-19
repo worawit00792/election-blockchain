@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>รายละเอียดผู้สมัคร – เลือกตั้งสภานักศึกษา 2570</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="candidate_detail">
+<nav class="navbar"><div class="container navbar-inner">
+  <a href="/home.html" class="nav-logo"><img src="/images/ubu-logo.png" alt="UBU" style="height:48px;width:auto;object-fit:contain"><div><div class="logo-main">เลือกตั้งสภานักศึกษา</div><div class="logo-sub">มหาวิทยาลัยอุบลราชธานี 2570</div></div></a>
+  <div class="nav-links"><a href="/home.html" class="nav-link">หน้าหลัก</a><a href="/candidates.html" class="nav-link active">ผู้สมัคร</a><a href="/results.html" class="nav-link">ผลคะแนน</a><a href="/blockchain.html" class="nav-link blockchain-link" style="display:none">Blockchain</a></div>
+  <div id="nav-auth" class="nav-auth"></div>
+</div></nav>
+<div class="page-body">
+  <div id="detail-container" style="padding:48px 0"><div class="container"><div style="text-align:center;padding:40px;color:var(--g400)">กำลังโหลด...</div></div></div>
+</div>
+<div id="toast-container" class="toast-wrap"></div>
+<script src="/js/main.js"></script>
+<script>
+const POLICIES={
+  1:["WiFi ฟรีทั่วมหาวิทยาลัย","เพิ่มพื้นที่อ่านหนังสือ 24 ชม.","ลดค่าอาหารโรงอาหาร","พัฒนาระบบขนส่งภายในมหาลัย","เพิ่มทุนการศึกษาสำหรับนักศึกษาที่ขาดแคลน"],
+  2:["ระบบ Smart Campus","App นักศึกษาอัจฉริยะ","ขยายเวลาห้องสมุดถึงเที่ยงคืน","พัฒนาพื้นที่ Co-Working Space","เพิ่มอุปกรณ์กีฬาและสันทนาการ"],
+  3:["Green Campus ลดโลกร้อน","ศูนย์ดูแลสุขภาพนักศึกษา","สนามกีฬาและนันทนาการ","พัฒนาระบบรับเรื่องร้องเรียน","ส่งเสริมกิจกรรมวัฒนธรรมไทย"],
+  4:["ระบบร้องเรียนออนไลน์","ตลาดนักศึกษา","กองทุนช่วยเหลือนักศึกษา","พัฒนาศูนย์แนะแนวอาชีพ","เพิ่มพื้นที่จอดรถนักศึกษา"]
+};
+const COLORS=["#2563eb","#f59e0b","#10b981","#7c3aed"];
+const PHOTOS=["candidate-1.png","candidate-2.png","candidate-3.png","candidate-4.png"];
+
+async function loadDetail(){
+  const id=parseInt(new URLSearchParams(location.search).get('id'))||1;
+  try{
+    const{candidates}=await api('/api/candidates');
+    const c=candidates.find(x=>x.id===id);
+    if(!c){location.href='/candidates.html';return;}
+    const policies=POLICIES[id]||[];
+    const col=COLORS[id-1];
+    document.getElementById('detail-container').innerHTML=`
+    <div class="container">
+      <a href="/candidates.html" style="display:inline-flex;align-items:center;gap:8px;color:var(--g500);font-size:14px;margin-bottom:32px;text-decoration:none" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--g500)'">← กลับไปหน้าผู้สมัครทั้งหมด</a>
+      <div style="display:grid;grid-template-columns:380px 1fr;gap:40px;align-items:start">
+        <div>
+          <div style="border-radius:var(--r-xl);overflow:hidden;margin-bottom:20px;box-shadow:0 8px 32px rgba(0,0,0,.12)">
+            <img src="/images/${PHOTOS[id-1]}" alt="${c.name}" style="width:100%;height:400px;object-fit:cover;object-position:center top">
+          </div>
+          <div style="background:#fff;border:1px solid var(--g200);border-radius:var(--r-xl);padding:24px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+              <div style="width:48px;height:48px;border-radius:12px;background:${col};display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff">${c.id}</div>
+              <div><div style="font-size:11px;font-weight:700;color:${col};text-transform:uppercase">${c.party}</div><div style="font-size:20px;font-weight:800;color:var(--navy)">${c.name}</div></div>
+            </div>
+            <p style="font-size:14px;color:var(--g500);line-height:1.6;font-style:italic;border-left:3px solid ${col};padding-left:12px;margin-bottom:20px">"${c.slogan}"</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--g50);border-radius:var(--r-md)">
+              <div style="font-size:13px;color:var(--g500)">คะแนนที่ได้รับ</div>
+              <div style="font-size:22px;font-weight:800;color:${col}">${c.voteCount} คะแนน</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h2 style="font-size:28px;font-weight:800;color:var(--navy);margin-bottom:8px">นโยบายของ${c.name}</h2>
+          <p style="color:var(--g500);margin-bottom:28px">นโยบายและแผนการพัฒนามหาวิทยาลัยของเรา</p>
+          <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:36px">
+            ${policies.map((p,i)=>`
+            <div style="display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--g200);border-radius:var(--r-lg);padding:18px 20px;transition:all .2s" onmouseover="this.style.borderColor='${col}';this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.borderColor='var(--g200)';this.style.boxShadow='none'">
+              <div style="width:36px;height:36px;border-radius:10px;background:${col}22;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:${col};flex-shrink:0">${i+1}</div>
+              <div style="font-size:15px;font-weight:600;color:var(--navy)">${p}</div>
+            </div>`).join('')}
+          </div>
+          <a href="/vote.html" class="btn btn-primary btn-lg" style="padding:16px 40px;font-size:16px">🗳️ ลงคะแนนให้ ${c.name}</a>
+        </div>
+      </div>
+    </div>`;
+  }catch(e){console.error(e);}
+}
+loadDetail();
+</script>
+</body></html>

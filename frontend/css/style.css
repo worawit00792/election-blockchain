@@ -1,0 +1,110 @@
+/* UBU Election System 2570 — CSS */
+:root {
+  --navy: #0f172a; --royal: #1e3a8a; --blue: #2563eb; --blue-glow: #60a5fa;
+  --green: #10b981; --gold: #f59e0b; --purple: #7c3aed; --red: #ef4444;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g300:#cbd5e1;
+  --g400:#94a3b8;--g500:#64748b;--g600:#475569;--g800:#1e293b;
+  --navy-mid:rgba(15,23,42,.85);
+  --r-sm:6px;--r-md:10px;--r-lg:16px;--r-xl:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans Thai','Sarabun',sans-serif;background:var(--g50);color:var(--g800);line-height:1.6}
+
+/* Navbar */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;background:#fff;border-bottom:1px solid var(--g200);height:64px;transition:box-shadow .2s}
+.navbar.scrolled{box-shadow:0 2px 20px rgba(0,0,0,.08)}
+.navbar-inner{display:flex;align-items:center;justify-content:space-between;height:64px;padding:0 24px;max-width:1280px;margin:0 auto}
+.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo-main{font-size:15px;font-weight:800;color:var(--navy)}
+.logo-sub{font-size:11px;color:var(--g400)}
+.nav-links{display:flex;align-items:center;gap:4px}
+.nav-link{padding:8px 14px;border-radius:var(--r-md);font-size:14px;font-weight:600;color:var(--g600);text-decoration:none;transition:all .2s}
+.nav-link:hover,.nav-link.active{background:var(--g100);color:var(--navy)}
+.nav-auth{display:flex;align-items:center;gap:8px}
+.nav-user{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:700;color:var(--navy);padding:7px 14px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:999px}
+.nav-user-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--blue);color:#fff;border-radius:50%;font-size:12px}
+.nav-user-name{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--r-md);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;text-decoration:none;border:none;transition:all .2s}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#1d4ed8;transform:translateY(-1px)}
+.btn-lg{padding:14px 32px;font-size:16px;border-radius:var(--r-lg)}
+.btn-sm{padding:7px 14px;font-size:13px}
+.btn-ghost{background:transparent;color:var(--g600);border:1.5px solid var(--g200)}.btn-ghost:hover{background:var(--g100)}
+.btn-wout{background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.3)}
+
+/* Page body */
+.page-body{margin-top:64px;min-height:calc(100vh - 64px)}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;background:var(--navy);min-height:420px;display:flex;align-items:center}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(37,99,235,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,.06) 1px,transparent 1px);background-size:48px 48px}
+.hero-glow{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;pointer-events:none}
+.hero-gl1{width:500px;height:500px;background:radial-gradient(circle,#3b82f6,transparent);top:-200px;right:-100px}
+.hero-gl2{width:400px;height:400px;background:radial-gradient(circle,#7c3aed,transparent);bottom:-150px;left:-100px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.3);border-radius:20px;padding:6px 14px;color:var(--blue-glow);font-size:13px;font-weight:600;margin-bottom:16px}
+.hero-eyebrow-dot{width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399}
+
+/* Container */
+.container{max-width:1280px;margin:0 auto;padding:0 24px}
+.container-sm{max-width:720px;margin:0 auto;padding:0 24px}
+.container-md{max-width:960px;margin:0 auto;padding:0 24px}
+
+/* Cards */
+.stat-card{background:#fff;border:1px solid var(--g200);border-radius:var(--r-xl);padding:28px 32px}
+.stat-label{font-size:13px;color:var(--g400);margin-bottom:6px}
+.stat-value{font-size:36px;font-weight:800;color:var(--navy)}
+.step-card{background:#fff;border:1px solid var(--g200);border-radius:var(--r-xl);padding:28px 24px;text-align:center}
+.step-icon{width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px}
+.step-num{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+
+/* Auth */
+.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy),#1e3a8a);position:relative;overflow:hidden;padding:24px}
+.auth-page::before,.auth-page::after{content:'';position:absolute;border-radius:50%;filter:blur(80px);opacity:.3;pointer-events:none}
+.auth-page::before{width:600px;height:600px;background:radial-gradient(circle,#3b82f6,transparent);top:-150px;right:-100px}
+.auth-page::after{width:500px;height:500px;background:radial-gradient(circle,#7c3aed,transparent);bottom:-150px;left:-100px}
+.auth-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:var(--r-xl);padding:40px;width:100%;position:relative;z-index:2}
+.auth-tabs{display:flex;gap:4px;background:rgba(255,255,255,.07);border-radius:var(--r-lg);padding:4px;margin-bottom:24px;border:1px solid rgba(255,255,255,.1)}
+.auth-tab{flex:1;padding:10px;border-radius:var(--r-md);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;background:transparent;border:none;color:rgba(255,255,255,.5);transition:all .2s}
+.auth-tab.active{background:rgba(37,99,235,.25);color:#fff}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--g600)}
+.label-light{color:rgba(255,255,255,.6)}
+.input{width:100%;padding:11px 14px;border-radius:var(--r-md);font-size:14px;font-family:inherit;outline:none;transition:border .2s;border:1.5px solid var(--g200);background:#fff;color:var(--navy)}
+.input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.input-dark{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.15);color:#fff}
+.input-dark::placeholder{color:rgba(255,255,255,.3)}
+.input-dark:focus{border-color:var(--blue-glow)}
+.hidden{display:none!important}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:var(--r-xl);padding:36px;max-width:480px;width:100%}
+.alert{padding:14px 18px;border-radius:var(--r-md);font-size:13px}
+.alert-warn{background:#fef3c7;border:1px solid #fbbf24;color:#92400e}
+
+/* Success page */
+.success-bg{min-height:100vh;background:linear-gradient(135deg,var(--navy),#1e3a8a);display:flex;align-items:center;justify-content:center;padding:40px}
+.success-check{width:80px;height:80px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff;margin:0 auto 28px;box-shadow:0 8px 32px rgba(16,185,129,.4)}
+
+/* Blockchain page */
+.bc-page{background:var(--navy);min-height:calc(100vh - 64px);color:#fff}
+
+/* Toast */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:300;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:var(--r-lg);font-size:14px;font-weight:600;animation:slideIn .3s ease;min-width:240px;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.toast.success{background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7}
+.toast.error{background:#fef2f2;color:#991b1b;border:1px solid #fca5a5}
+.toast.info{background:#eff6ff;color:#1e40af;border:1px solid #93c5fd}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* Badge live */
+.badge-live{display:inline-flex;align-items:center;gap:8px;background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);border-radius:20px;padding:6px 14px;color:#34d399;font-size:13px;font-weight:600}
+
+/* Animations */
+.anim-up{animation:fadeUp .6s ease both}
+.anim-scale{animation:scaleIn .4s ease both}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
