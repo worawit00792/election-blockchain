@@ -27,7 +27,7 @@ const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const ALLOWED_DOMAIN       = "ubu.ac.th";
-const REDIRECT_URI = process.env.RENDER_EXTERNAL_URL 
+const REDIRECT_URI = process.env.RENDER_EXTERNAL_URL
   ? `${process.env.RENDER_EXTERNAL_URL}/auth/google/callback`
   : `http://127.0.0.1:${PORT}/auth/google/callback`;
 
@@ -46,8 +46,16 @@ async function initBlockchain() {
     if (!fs.existsSync(configPath)) { console.log("⚠️  Run: npm run deploy"); return; }
     contractAddress = JSON.parse(fs.readFileSync(configPath)).contractAddress;
 
-    provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
-    wallet   = await provider.getSigner(0);
+    const RPC_URL = process.env.SEPOLIA_RPC_URL || "http://127.0.0.1:8545";
+    const isSepolia = RPC_URL.includes("sepolia") || RPC_URL.includes("alchemy") || RPC_URL.includes("infura");
+    if (isSepolia) {
+      // บอก network ตรงๆ (staticNetwork) กัน error "failed to detect network"
+      provider = new ethers.JsonRpcProvider(RPC_URL, { chainId: 11155111, name: "sepolia" }, { staticNetwork: true });
+      wallet   = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    } else {
+      provider = new ethers.JsonRpcProvider(RPC_URL);
+      wallet   = process.env.PRIVATE_KEY ? new ethers.Wallet(process.env.PRIVATE_KEY, provider) : await provider.getSigner(0);
+    }
     contract = new ethers.Contract(contractAddress, contractABI, wallet);
     console.log(`⛓️  Connected to blockchain: ${contractAddress}`);
 
@@ -144,7 +152,7 @@ app.post("/api/vote", requireLogin, async (req, res) => {
     if (hasVoted) return res.status(403).json({ error: "คุณได้ลงคะแนนแล้ว" });
     const emailHash   = ethers.keccak256(ethers.toUtf8Bytes(email));
     const voterWallet = new ethers.Wallet(emailHash, provider);
-    const fundTx      = await wallet.sendTransaction({ to: voterWallet.address, value: ethers.parseEther("0.1") });
+    const fundTx      = await wallet.sendTransaction({ to: voterWallet.address, value: ethers.parseEther("0.002") });
     await fundTx.wait();
     const voterContract = contract.connect(voterWallet);
     const tx      = await voterContract.vote(candidateId, email);
