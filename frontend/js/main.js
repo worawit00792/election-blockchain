@@ -190,24 +190,45 @@ async function loadResults() {
     const { candidates } = await api('/api/candidates');
     const { totalVotes } = await api('/api/stats');
     const total = totalVotes || 1;
-    const COLORS = ["#2563eb","#f59e0b","#10b981","#7c3aed"];
+
+    // เรียงตามคะแนนมาก→น้อย (เบอร์ 1 = คะแนนสูงสุด)
+    const sorted = [...candidates].sort((a,b) => b.voteCount - a.voteCount);
 
     const container = document.getElementById('results-container');
     if (container) {
-      container.innerHTML = candidates.map((c,i) => {
+      container.innerHTML = sorted.map((c,i) => {
+        const rank = i + 1;
         const pct = Math.round(c.voteCount/total*100);
-        const medals = ['🥇','🥈','🥉','4️⃣'];
+        const isTop = rank === 1;
+        const policies = (c.policies||[]).slice(0,4);
         return `
-        <div style="margin-bottom:20px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div style="display:flex;align-items:center;gap:10px">
-              <span style="font-size:22px">${medals[i]||''}</span>
-              <span style="font-weight:700;font-size:15px">${c.name}</span>
+        <div style="border-radius:12px;background:${isTop?'var(--bg-warning,#fef3c7)':'var(--g50)'};overflow:hidden;margin-bottom:10px">
+          <div onclick="const d=document.getElementById('rdetail-${c.id}');const a=document.getElementById('rarrow-${c.id}');const open=d.style.display!=='none';d.style.display=open?'none':'block';a.style.transform=open?'rotate(0deg)':'rotate(180deg)';"
+               style="display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer">
+            <div style="width:44px;height:44px;border-radius:9px;background:${isTop?c.color:'#fff'};border:${isTop?'none':'1.5px solid var(--g200)'};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+              <span style="font-size:8px;color:${isTop?'#fff':'var(--g500)'};line-height:1">เบอร์</span>
+              <span style="font-size:17px;font-weight:800;color:${isTop?'#fff':'var(--navy)'};line-height:1.2">${rank}</span>
             </div>
-            <span style="font-weight:800;color:${COLORS[i]}">${c.voteCount} คะแนน (${pct}%)</span>
+            <img src="/images/${c.photo}" onerror="this.style.display='none'" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #fff;flex-shrink:0">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:15px;color:var(--navy)">${c.emoji||''} ${c.name}</div>
+              <div style="font-size:12px;color:var(--g500);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.party||''}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:19px;font-weight:800;color:${isTop?c.color:'var(--navy)'}">${c.voteCount}</div>
+              <div style="font-size:11px;color:var(--g400)">${pct}%</div>
+            </div>
+            <svg id="rarrow-${c.id}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--g400);flex-shrink:0;transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
-          <div style="height:12px;background:var(--g100);border-radius:6px;overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:${COLORS[i]};border-radius:6px;transition:width 1.2s"></div>
+          <div style="height:6px;background:rgba(0,0,0,.06);margin:0 16px 14px;border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${c.color};border-radius:4px;transition:width 1s"></div>
+          </div>
+          <div id="rdetail-${c.id}" style="display:none;padding:0 16px 16px;border-top:1px solid rgba(0,0,0,.06)">
+            <div style="font-size:12px;color:var(--g500);margin:12px 0 8px;font-weight:700">นโยบายหลัก</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+              ${policies.length ? policies.map(p=>`<span style="font-size:11.5px;background:#fff;padding:4px 11px;border-radius:999px;color:var(--g600)">${p}</span>`).join('') : `<span style="font-size:12px;color:var(--g400)">ยังไม่มีข้อมูลนโยบาย</span>`}
+            </div>
+            <a href="/candidate_detail.html?id=${c.id}" class="btn btn-primary btn-sm" style="width:100%;justify-content:center">ดูรายละเอียดเต็ม →</a>
           </div>
         </div>`;
       }).join('');
