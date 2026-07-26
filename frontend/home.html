@@ -12,7 +12,8 @@
     <img src="/images/ubu-logo.png" alt="UBU" style="height:48px;width:auto;object-fit:contain">
     <div><div class="logo-main">เลือกตั้งสภานักศึกษา</div><div class="logo-sub">มหาวิทยาลัยอุบลราชธานี 2570</div></div>
   </a>
-  <div class="nav-links">
+  <button class="nav-toggle" id="nav-toggle" aria-label="เปิดเมนู"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
     <a href="/home.html" class="nav-link active">หน้าหลัก</a>
     <a href="/candidates.html" class="nav-link">ผู้สมัคร</a>
     <a href="/results.html" class="nav-link">ผลคะแนน</a>
@@ -30,7 +31,7 @@
     <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,22,40,.92) 0%,rgba(10,22,40,.75) 40%,rgba(10,22,40,.2) 65%,transparent 100%)"></div>
   </div>
   <div class="container" style="width:100%;position:relative;z-index:2">
-    <div style="display:grid;grid-template-columns:1fr 320px;gap:36px;align-items:center;padding:32px 0 36px">
+    <div class="r-sidebar" style="display:grid;grid-template-columns:1fr 320px;gap:36px;align-items:center;padding:32px 0 36px">
       <div style="max-width:500px">
         <div class="hero-eyebrow"><div class="hero-eyebrow-dot"></div><span>เปิดรับลงคะแนน 1 – 7 มิถุนายน 2570</span></div>
         <h1 style="color:#fff;font-size:54px;font-weight:900;line-height:1.15;margin-bottom:16px">อนาคตของเรา<br><span style="background:linear-gradient(135deg,#93c5fd,#60a5fa,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">เริ่มต้นที่เสียงของคุณ</span></h1>
@@ -68,7 +69,7 @@
       <p style="color:var(--g500);font-size:15px">เลือกดูผู้สมัครและนโยบายของแต่ละทีม</p>
     </div>
   </div>
-  <div id="candidates-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+  <div id="candidates-grid" class="r-grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
     <div style="text-align:center;padding:40px;color:var(--g400)">กำลังโหลด...</div>
   </div>
 </div>
