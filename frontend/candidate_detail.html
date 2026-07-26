@@ -9,7 +9,8 @@
 <body data-page="candidate_detail">
 <nav class="navbar"><div class="container navbar-inner">
   <a href="/home.html" class="nav-logo"><img src="/images/ubu-logo.png" alt="UBU" style="height:48px;width:auto;object-fit:contain"><div><div class="logo-main">เลือกตั้งสภานักศึกษา</div><div class="logo-sub">มหาวิทยาลัยอุบลราชธานี 2570</div></div></a>
-  <div class="nav-links"><a href="/home.html" class="nav-link">หน้าหลัก</a><a href="/candidates.html" class="nav-link active">ผู้สมัคร</a><a href="/results.html" class="nav-link">ผลคะแนน</a><a href="/blockchain.html" class="nav-link blockchain-link" style="display:none">Blockchain</a></div>
+  <button class="nav-toggle" id="nav-toggle" aria-label="เปิดเมนู"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links"><a href="/home.html" class="nav-link">หน้าหลัก</a><a href="/candidates.html" class="nav-link active">ผู้สมัคร</a><a href="/results.html" class="nav-link">ผลคะแนน</a><a href="/blockchain.html" class="nav-link blockchain-link" style="display:none">Blockchain</a></div>
   <div id="nav-auth" class="nav-auth"></div>
 </div></nav>
 <div class="page-body">
@@ -38,7 +39,7 @@ async function loadDetail(){
     document.getElementById('detail-container').innerHTML=`
     <div class="container">
       <a href="/candidates.html" style="display:inline-flex;align-items:center;gap:8px;color:var(--g500);font-size:14px;margin-bottom:32px;text-decoration:none" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--g500)'">← กลับไปหน้าผู้สมัครทั้งหมด</a>
-      <div style="display:grid;grid-template-columns:380px 1fr;gap:40px;align-items:start">
+      <div class="r-sidebar" style="display:grid;grid-template-columns:380px 1fr;gap:40px;align-items:start">
         <div>
           <div style="border-radius:var(--r-xl);overflow:hidden;margin-bottom:20px;box-shadow:0 8px 32px rgba(0,0,0,.12)">
             <img src="/images/${PHOTOS[id-1]}" alt="${c.name}" style="width:100%;height:400px;object-fit:cover;object-position:center top">
