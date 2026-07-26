@@ -38,6 +38,21 @@ async function initNavbar() {
   // เมนูมือถือ (แฮมเบอร์เกอร์)
   const toggleBtn = document.getElementById('nav-toggle');
   const navLinks   = document.getElementById('nav-links');
+  const authBox    = document.getElementById('nav-auth');
+
+  // ย้าย nav-auth เข้าไปในเมนูตอนจอเล็ก / ย้ายกลับตอนจอใหญ่
+  function placeAuth() {
+    if (!navLinks || !authBox) return;
+    if (window.innerWidth <= 900) {
+      if (authBox.parentElement !== navLinks) navLinks.appendChild(authBox);
+    } else {
+      const inner = document.querySelector('.navbar-inner');
+      if (inner && authBox.parentElement !== inner) inner.appendChild(authBox);
+    }
+  }
+  placeAuth();
+  window.addEventListener('resize', placeAuth);
+
   if (toggleBtn && navLinks) {
     toggleBtn.addEventListener('click', () => {
       const open = navLinks.classList.toggle('open');
