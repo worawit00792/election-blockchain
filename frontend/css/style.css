@@ -122,15 +122,17 @@ body{font-family:'Noto Sans Thai','Sarabun',sans-serif;background:var(--g50);col
   .container,.container-sm,.container-md{padding:0 16px}
   .nav-toggle{display:flex}
   .nav-links{
-    display:none;position:fixed;top:64px;left:0;right:0;background:#fff;
-    flex-direction:column;align-items:stretch;gap:0;padding:8px 16px 16px;
+    display:none;position:absolute;top:64px;left:0;right:0;background:#fff;
+    flex-direction:column;align-items:stretch;gap:4px;padding:8px 16px 16px;
     box-shadow:0 8px 24px rgba(0,0,0,.08);border-bottom:1px solid var(--g200);
     z-index:99;max-height:calc(100vh - 64px);overflow-y:auto;
   }
   .nav-links.open{display:flex}
   .nav-link{padding:12px 14px;border-radius:var(--r-md);width:100%}
-  .nav-auth{gap:6px}
-  .nav-user-name{max-width:90px}
+  /* ปุ่ม/ชื่อผู้ใช้ ที่ JS ย้ายเข้ามาในเมนู ให้เต็มความกว้าง */
+  .nav-links .nav-auth{display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%;margin-top:8px;padding-top:12px;border-top:1px solid var(--g100)}
+  .nav-links .nav-auth .btn,.nav-links .nav-auth .nav-user{width:100%;justify-content:center}
+  .nav-links .nav-auth .nav-user-name{max-width:none}
 }
 
 @media (max-width:768px){
