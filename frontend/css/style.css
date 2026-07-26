@@ -108,3 +108,59 @@ body{font-family:'Noto Sans Thai','Sarabun',sans-serif;background:var(--g50);col
 .d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+
+/* ══════════════════ Mobile menu (hamburger) ══════════════════ */
+.nav-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px;flex-direction:column;gap:4px;width:36px;height:36px;align-items:center;justify-content:center}
+.nav-toggle span{display:block;width:22px;height:2px;background:var(--navy);border-radius:2px;transition:all .2s}
+.nav-toggle.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.nav-toggle.open span:nth-child(2){opacity:0}
+.nav-toggle.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+
+/* ══════════════════ Responsive breakpoints ══════════════════ */
+@media (max-width:900px){
+  .navbar-inner{padding:0 16px}
+  .container,.container-sm,.container-md{padding:0 16px}
+  .nav-toggle{display:flex}
+  .nav-links{
+    display:none;position:fixed;top:64px;left:0;right:0;background:#fff;
+    flex-direction:column;align-items:stretch;gap:0;padding:8px 16px 16px;
+    box-shadow:0 8px 24px rgba(0,0,0,.08);border-bottom:1px solid var(--g200);
+    z-index:99;max-height:calc(100vh - 64px);overflow-y:auto;
+  }
+  .nav-links.open{display:flex}
+  .nav-link{padding:12px 14px;border-radius:var(--r-md);width:100%}
+  .nav-auth{gap:6px}
+  .nav-user-name{max-width:90px}
+}
+
+@media (max-width:768px){
+  /* Grid helper overrides — เพิ่ม class เหล่านี้ในแท็กที่ใช้ grid ตายตัว */
+  .r-grid-2,.r-grid-3,.r-grid-4,.r-sidebar{grid-template-columns:1fr!important}
+  .r-sidebar{gap:20px!important}
+
+  /* Hero / headings ลดขนาด */
+  .hero{min-height:auto!important;padding:32px 0}
+  h1{font-size:clamp(28px,7vw,40px)!important}
+
+  /* Cards / padding บีบให้พอดีจอเล็ก */
+  .stat-card,.step-card{padding:20px!important}
+  .stat-value{font-size:28px!important}
+  .auth-card{padding:24px!important}
+  .modal-box{padding:24px!important}
+
+  /* ปุ่มใหญ่เต็มความกว้างบนมือถือ */
+  .btn-lg{width:100%;justify-content:center;padding:14px 20px!important;font-size:15px!important}
+
+  /* ตาราง/การ์ดที่ overflow แนวนอน ให้ scroll ได้แทนที่จะบีบจนอ่านไม่ออก */
+  .toast-wrap{left:12px;right:12px;bottom:12px}
+  .toast{min-width:0;width:100%}
+}
+
+@media (max-width:480px){
+  .navbar-inner{padding:0 12px}
+  .container,.container-sm,.container-md{padding:0 12px}
+  .logo-main{font-size:13px}
+  .logo-sub{font-size:10px}
+  .stat-value{font-size:24px!important}
+  h1{font-size:clamp(24px,8vw,32px)!important}
+}
