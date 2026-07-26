@@ -35,6 +35,21 @@ async function initNavbar() {
   const nav = document.querySelector('.navbar');
   if (nav) window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>20),{passive:true});
 
+  // เมนูมือถือ (แฮมเบอร์เกอร์)
+  const toggleBtn = document.getElementById('nav-toggle');
+  const navLinks   = document.getElementById('nav-links');
+  if (toggleBtn && navLinks) {
+    toggleBtn.addEventListener('click', () => {
+      const open = navLinks.classList.toggle('open');
+      toggleBtn.classList.toggle('open', open);
+    });
+    // ปิดเมนูอัตโนมัติเมื่อกดลิงก์ไหนก็ตาม
+    navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+      toggleBtn.classList.remove('open');
+    }));
+  }
+
   try {
     const me = await api('/api/me');
     const authEl = document.getElementById('nav-auth');
