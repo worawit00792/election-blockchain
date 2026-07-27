@@ -12,7 +12,10 @@ body{background:#0a0a3e;font-family:'Noto Sans Thai',sans-serif}
 
 .hero-page{
   min-height:100vh;
-  background:radial-gradient(ellipse at center top, #1a1a6e 0%, #0a0a3e 60%, #050520 100%);
+  background:
+    linear-gradient(180deg, rgba(10,10,62,.60) 0%, rgba(5,5,32,.75) 100%),
+    url('/images/hero-bg.jpg') center/cover no-repeat,
+    radial-gradient(ellipse at center top, #1a1a6e 0%, #0a0a3e 60%, #050520 100%);
   display:flex;align-items:center;justify-content:center;
   position:relative;overflow:hidden;
 }
