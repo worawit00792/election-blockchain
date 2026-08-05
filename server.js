@@ -6,7 +6,6 @@ const { ethers } = require("ethers");
 const path       = require("path");
 const fs         = require("fs");
 const multer     = require("multer");
-
 // ─── Multer (อัพโหลดรูปผู้สมัคร) ──────────────────────────
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -20,32 +19,25 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
-
 const app  = express();
 const PORT = process.env.PORT || 3000;
-
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const ALLOWED_DOMAIN       = "ubu.ac.th";
 const REDIRECT_URI = process.env.RENDER_EXTERNAL_URL
   ? `${process.env.RENDER_EXTERNAL_URL}/auth/google/callback`
   : `http://127.0.0.1:${PORT}/auth/google/callback`;
-
 let provider, wallet, contract, contractABI, contractAddress;
-
 // ─── Candidate extra data (เก็บ in-memory: นโยบาย, ประวัติ, รูป, สี, emoji) ──
 let candidateExtra = {}; // key = candidateId (number)
-
 async function initBlockchain() {
   try {
     const artifactPath = path.join(__dirname, "artifacts/contracts/Election.sol/Election.json");
     if (!fs.existsSync(artifactPath)) { console.log("⚠️  Run: npx hardhat compile"); return; }
     contractABI = JSON.parse(fs.readFileSync(artifactPath)).abi;
-
     const configPath = path.join(__dirname, "contract-config.json");
     if (!fs.existsSync(configPath)) { console.log("⚠️  Run: npm run deploy"); return; }
     contractAddress = JSON.parse(fs.readFileSync(configPath)).contractAddress;
-
     const RPC_URL = process.env.SEPOLIA_RPC_URL || "http://127.0.0.1:8545";
     const isSepolia = RPC_URL.includes("sepolia") || RPC_URL.includes("alchemy") || RPC_URL.includes("infura");
     if (isSepolia) {
@@ -58,7 +50,6 @@ async function initBlockchain() {
     }
     contract = new ethers.Contract(contractAddress, contractABI, wallet);
     console.log(`⛓️  Connected to blockchain: ${contractAddress}`);
-
     // Load saved extra data
     const extraPath = path.join(__dirname, "candidate-extra.json");
     if (fs.existsSync(extraPath)) {
@@ -66,19 +57,15 @@ async function initBlockchain() {
     }
   } catch (err) { console.log("⚠️  Blockchain not available:", err.message); }
 }
-
 function saveExtra() {
   fs.writeFileSync(path.join(__dirname, "candidate-extra.json"), JSON.stringify(candidateExtra, null, 2));
 }
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "frontend")));
 app.use(session({ secret: "ubu-election-2570", resave: false, saveUninitialized: false, cookie: { maxAge: 86400000 } }));
-
 function requireLogin(req, res, next) { if (!req.session.user) return res.redirect("/login.html"); next(); }
 function requireAdmin(req, res, next) { if (!req.session.isAdmin) return res.status(401).json({ error: "Unauthorized" }); next(); }
-
 // ─── Google OAuth ────────────────────────────────────────────
 app.get("/auth/google", (req, res) => {
   const next = req.query.next || "/";
@@ -86,7 +73,6 @@ app.get("/auth/google", (req, res) => {
   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=openid%20email%20profile`;
   res.redirect(url);
 });
-
 app.get("/auth/google/callback", async (req, res) => {
   const { code } = req.query;
   if (!code) return res.redirect("/login.html?error=no_code");
@@ -102,19 +88,19 @@ app.get("/auth/google/callback", async (req, res) => {
     const dest = req.session.loginNext || "/home.html"; delete req.session.loginNext; res.redirect(dest);
   } catch (err) { res.redirect("/login.html?error=oauth_failed"); }
 });
-
 app.post("/auth/logout", (req, res) => { req.session.destroy(); res.json({ ok: true }); });
-
 // ─── API ─────────────────────────────────────────────────────
 app.get("/api/me", (req, res) => {
   if (!req.session.user) return res.json({ loggedIn: false, isAdmin: !!req.session.isAdmin });
   res.json({ loggedIn: true, ...req.session.user, isAdmin: !!req.session.isAdmin });
 });
 
+// ★★★ แก้ไขแล้ว: ซ่อนคะแนนแยกผู้สมัครระหว่างเปิดรับคะแนน (isOpen=true) ★★★
 app.get("/api/candidates", async (req, res) => {
   if (!contract) return res.json({ candidates: getMockCandidates() });
   try {
-    const count = Number(await contract.candidateCount());
+    const count  = Number(await contract.candidateCount());
+    const isOpen = await contract.isOpen();
     const COLORS = ["#2563eb","#f59e0b","#10b981","#7c3aed"];
     const candidates = [];
     for (let i = 1; i <= count; i++) {
@@ -122,7 +108,8 @@ app.get("/api/candidates", async (req, res) => {
       const extra = candidateExtra[i] || {};
       candidates.push({
         id: Number(id), name, party, slogan,
-        voteCount: Number(voteCount),
+        // ★ ระหว่างเปิดรับคะแนน ไม่ส่งตัวเลขคะแนนออกไปเลย (null) ป้องกันการชี้นำ/บังคับโหวต
+        voteCount: isOpen ? null : Number(voteCount),
         color:    extra.color    || COLORS[i-1] || "#2563eb",
         emoji:    extra.emoji    || "🗳️",
         photo:    extra.photo    || `candidate-${i}.png`,
@@ -130,7 +117,7 @@ app.get("/api/candidates", async (req, res) => {
         biography:extra.biography|| "",
       });
     }
-    res.json({ candidates });
+    res.json({ candidates, isOpen });
   } catch (err) { res.json({ candidates: getMockCandidates() }); }
 });
 
@@ -142,7 +129,6 @@ app.get("/api/stats", async (req, res) => {
     res.json({ totalVotes, isOpen, totalVoters: 2450 });
   } catch (err) { res.json({ totalVotes: 0, isOpen: true, totalVoters: 2450 }); }
 });
-
 app.post("/api/vote", requireLogin, async (req, res) => {
   const { candidateId } = req.body;
   const email = req.session.user.email;
@@ -162,7 +148,6 @@ app.post("/api/vote", requireLogin, async (req, res) => {
     res.json({ ok: true, txHash: receipt.hash, blockNumber: receipt.blockNumber });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
 // ─── Admin ───────────────────────────────────────────────────
 app.post("/api/admin/login", (req, res) => {
   const { username, password } = req.body;
@@ -173,7 +158,6 @@ app.post("/api/admin/login", (req, res) => {
     res.status(401).json({ error: "ข้อมูลไม่ถูกต้อง" });
   }
 });
-
 app.post("/api/admin/toggle", requireAdmin, async (req, res) => {
   if (!contract) return res.status(503).json({ error: "Blockchain not available" });
   try {
@@ -183,7 +167,6 @@ app.post("/api/admin/toggle", requireAdmin, async (req, res) => {
     res.json({ ok: true, isOpen });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
 // เพิ่มผู้สมัคร (Smart Contract + Extra data + รูป)
 app.post("/api/admin/add-candidate", requireAdmin, upload.single("photo"), async (req, res) => {
   if (!contract) return res.status(503).json({ error: "Blockchain not available" });
@@ -191,20 +174,15 @@ app.post("/api/admin/add-candidate", requireAdmin, upload.single("photo"), async
     const { name, party, slogan, color, emoji, biography } = req.body;
     let policies = [];
     try { policies = JSON.parse(req.body.policies || "[]"); } catch(e) {}
-
     if (!name || !party || !slogan) return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" });
-
     const tx = await contract.addCandidate(name, party, slogan);
     await tx.wait();
-
     const count = Number(await contract.candidateCount());
-
     // Save extra data
     let photoPath = `candidate-${count}.png`; // default
     if (req.file) {
       photoPath = `candidates/${req.file.filename}`;
     }
-
     candidateExtra[count] = {
       color:    color    || "#2563eb",
       emoji:    emoji    || "🗳️",
@@ -213,11 +191,9 @@ app.post("/api/admin/add-candidate", requireAdmin, upload.single("photo"), async
       biography:biography || "",
     };
     saveExtra();
-
     res.json({ ok: true, message: `เพิ่ม ${name} สำเร็จ` });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
 // ลบผู้สมัคร (ลบ extra data ด้วย แต่ Smart Contract ลบไม่ได้)
 app.delete("/api/admin/delete-candidate/:id", requireAdmin, (req, res) => {
   const id = parseInt(req.params.id);
@@ -232,7 +208,6 @@ app.delete("/api/admin/delete-candidate/:id", requireAdmin, (req, res) => {
   }
   res.json({ ok: true, message: "ลบข้อมูลเพิ่มเติมแล้ว (Smart Contract ไม่สามารถลบได้)" });
 });
-
 app.get("/api/blockchain", async (req, res) => {
   if (!provider || !contract) return res.json({ blocks: [], contractAddress: null, isValid: false });
   try {
@@ -245,7 +220,6 @@ app.get("/api/blockchain", async (req, res) => {
     res.json({ blocks: blocks.reverse(), contractAddress, isValid: true, totalBlocks: blockNumber + 1 });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
 function getMockCandidates() {
   return [
     { id:1, name:"ทีมก้าวไกล",    party:"พรรคอนาคตใหม่",    slogan:"ก้าวไปด้วยกัน",     voteCount:0, color:"#2563eb", emoji:"🚀", photo:"candidate-1.png", policies:[], biography:"" },
@@ -254,7 +228,6 @@ function getMockCandidates() {
     { id:4, name:"ทีมเพื่อเรา",    party:"พรรคเพื่อเรา",      slogan:"ทุกเสียงมีความหมาย", voteCount:0, color:"#7c3aed", emoji:"💙", photo:"candidate-4.png", policies:[], biography:"" },
   ];
 }
-
 app.listen(PORT, async () => {
   await initBlockchain();
   console.log("\n" + "═".repeat(50));
