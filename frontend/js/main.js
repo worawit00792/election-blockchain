@@ -2,7 +2,6 @@
  * main.js — UBU Election System 2570 (Blockchain Edition)
  */
 'use strict';
-
 /* ── Toast ──────────────────────────────────────────────── */
 const Toast = (() => {
   const icons = { success:'✓', error:'✕', info:'ℹ' };
@@ -17,7 +16,6 @@ const Toast = (() => {
   }
   return { success: m=>show(m,'success'), error: m=>show(m,'error'), info: m=>show(m,'info') };
 })();
-
 /* ── API ────────────────────────────────────────────────── */
 async function api(url, opts={}) {
   const res = await fetch(url, {
@@ -28,18 +26,15 @@ async function api(url, opts={}) {
   if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
   return data;
 }
-
 /* ── Navbar ─────────────────────────────────────────────── */
 async function initNavbar() {
   const path = location.pathname;
   const nav = document.querySelector('.navbar');
   if (nav) window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>20),{passive:true});
-
   // เมนูมือถือ (แฮมเบอร์เกอร์)
   const toggleBtn = document.getElementById('nav-toggle');
   const navLinks   = document.getElementById('nav-links');
   const authBox    = document.getElementById('nav-auth');
-
   // ย้าย nav-auth เข้าไปในเมนูตอนจอเล็ก / ย้ายกลับตอนจอใหญ่
   function placeAuth() {
     if (!navLinks || !authBox) return;
@@ -52,7 +47,6 @@ async function initNavbar() {
   }
   placeAuth();
   window.addEventListener('resize', placeAuth);
-
   if (toggleBtn && navLinks) {
     toggleBtn.addEventListener('click', () => {
       const open = navLinks.classList.toggle('open');
@@ -64,7 +58,6 @@ async function initNavbar() {
       toggleBtn.classList.remove('open');
     }));
   }
-
   try {
     const me = await api('/api/me');
     const authEl = document.getElementById('nav-auth');
@@ -77,7 +70,6 @@ async function initNavbar() {
     // ปุ่ม "ลงคะแนนเลยตอนนี้" หน้า home — ถ้า login แล้วไปหน้าโหวตเลย ไม่ต้อง login ซ้ำ
     const heroBtn = document.getElementById('hero-vote-btn');
     if (heroBtn) heroBtn.href = me.loggedIn ? '/vote.html' : '/login.html?next=/vote.html';
-
     if (me.loggedIn) {
       authEl.innerHTML = `
         <div class="nav-user"><span class="nav-user-icon">👤</span><span class="nav-user-name">${me.name || me.email}</span></div>
@@ -90,12 +82,10 @@ async function initNavbar() {
     }
   } catch(e) {}
 }
-
 async function logout() {
   await api('/auth/logout',{method:'POST'}).catch(()=>{});
   location.href='/login.html';
 }
-
 /* ── Candidates ─────────────────────────────────────────── */
 async function loadCandidates(containerId) {
   const container = document.getElementById(containerId);
@@ -133,14 +123,11 @@ async function loadCandidates(containerId) {
     }).join('');
   } catch(e) { console.error(e); }
 }
-
 /* ── Vote ───────────────────────────────────────────────── */
 let selectedCandidateId = null;
-
 async function loadVoteCandidates() {
   const container = document.getElementById('vote-candidates');
   if (!container) return;
-
   try {
     const me = await api('/api/me');
     if (!me.loggedIn) { location.href='/login.html'; return; }
@@ -158,7 +145,6 @@ async function loadVoteCandidates() {
         </div>`;
       return;
     }
-
     const { candidates } = await api('/api/candidates');
     const COLORS = ["#2563eb","#f59e0b","#10b981","#7c3aed"];
     const PHOTOS = ["candidate-1.png","candidate-2.png","candidate-3.png","candidate-4.png"];
@@ -176,7 +162,6 @@ async function loadVoteCandidates() {
       </div>`).join('');
   } catch(e) { console.error(e); }
 }
-
 function selectCandidate(id) {
   const COLORS = ["#2563eb","#f59e0b","#10b981","#7c3aed"];
   selectedCandidateId = id;
@@ -191,7 +176,6 @@ function selectCandidate(id) {
   const btn = document.getElementById('vote-submit-btn');
   if (btn) { btn.disabled=false; btn.style.opacity='1'; }
 }
-
 async function submitVote() {
   if (!selectedCandidateId) return;
   const btn = document.getElementById('m-confirm-btn');
@@ -207,24 +191,39 @@ async function submitVote() {
     closeModal('vote-modal');
   }
 }
-
 function openVoteConfirm() {
   if (!selectedCandidateId) return;
   document.getElementById('vote-modal')?.classList.add('open');
   document.body.style.overflow='hidden';
 }
-
 /* ── Results ────────────────────────────────────────────── */
+// ★★★ แก้ไขแล้ว: ระหว่างเปิดรับคะแนน โชว์แค่ยอดผู้ใช้สิทธิ์ ไม่โชว์คะแนนแยกผู้สมัคร ★★★
 async function loadResults() {
   try {
-    const { candidates } = await api('/api/candidates');
-    const { totalVotes } = await api('/api/stats');
-    const total = totalVotes || 1;
-
-    // เรียงตามคะแนนมาก→น้อย (เบอร์ 1 = คะแนนสูงสุด)
-    const sorted = [...candidates].sort((a,b) => b.voteCount - a.voteCount);
-
+    const { isOpen, totalVotes } = await api('/api/stats');
     const container = document.getElementById('results-container');
+    const tvEl = document.getElementById('total-votes');
+
+    // ★ ระหว่างเปิดรับคะแนน — โชว์แค่ยอดผู้ใช้สิทธิ์ ไม่โชว์คะแนนแยกผู้สมัคร
+    if (isOpen) {
+      if (container) {
+        container.innerHTML = `
+          <div style="text-align:center;padding:56px 32px;background:var(--g50);border-radius:16px">
+            <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px;color:#fff">🗳️</div>
+            <h2 style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:8px">การเลือกตั้งกำลังดำเนินอยู่</h2>
+            <p style="color:var(--g500);margin-bottom:4px;max-width:400px;margin-left:auto;margin-right:auto">เพื่อความยุติธรรมและป้องกันการชี้นำผู้ลงคะแนน ผลคะแนนจะประกาศให้ทราบหลังปิดรับคะแนนเท่านั้น</p>
+            <div style="margin-top:24px;font-size:40px;font-weight:900;color:var(--navy)">${totalVotes}</div>
+            <div style="font-size:13px;color:var(--g400)">คนมาใช้สิทธิ์แล้ว</div>
+          </div>`;
+      }
+      if (tvEl) tvEl.textContent = totalVotes;
+      return; // ★ ออกจากฟังก์ชันเลย ไม่ไปดึง candidates มาโชว์คะแนน
+    }
+
+    // ── ปิดรับคะแนนแล้ว: โชว์ผลเต็มแบบเดิมทุกอย่าง ──
+    const { candidates } = await api('/api/candidates');
+    const total = totalVotes || 1;
+    const sorted = [...candidates].sort((a,b) => b.voteCount - a.voteCount);
     if (container) {
       container.innerHTML = sorted.map((c,i) => {
         const rank = i + 1;
@@ -263,24 +262,19 @@ async function loadResults() {
         </div>`;
       }).join('');
     }
-
-    const tvEl = document.getElementById('total-votes');
     if (tvEl) tvEl.textContent = totalVotes;
   } catch(e) { console.error(e); }
 }
-
 /* ── Blockchain ─────────────────────────────────────────── */
 async function loadBlockchain() {
   try {
     const { blocks, contractAddress } = await api('/api/blockchain');
     const container = document.getElementById('blocks-container');
     if (!container) return;
-
     if (contractAddress) {
       const addrEl = document.getElementById('contract-address');
       if (addrEl) addrEl.textContent = contractAddress;
     }
-
     container.innerHTML = blocks.map(b => `
       <div style="background:var(--navy-mid);border:1px solid rgba(37,99,235,.22);border-radius:var(--r-lg);padding:24px 28px;margin-bottom:14px">
         <div style="display:flex;justify-content:space-between;margin-bottom:16px">
@@ -300,12 +294,10 @@ async function loadBlockchain() {
     ).join('');
   } catch(e) { console.error(e); }
 }
-
 /* ── Modal ──────────────────────────────────────────────── */
 function openModal(id)  { document.getElementById(id)?.classList.add('open'); document.body.style.overflow='hidden'; }
 function closeModal(id) { document.getElementById(id)?.classList.remove('open'); document.body.style.overflow=''; }
 document.addEventListener('click',e=>{ if(e.target.classList.contains('modal-overlay')) closeModal(e.target.id); });
-
 /* ── DOMContentLoaded ────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   initNavbar();
@@ -316,5 +308,4 @@ document.addEventListener('DOMContentLoaded', () => {
   if (page==='results')    loadResults();
   if (page==='blockchain') loadBlockchain();
 });
-
 Object.assign(window,{ selectCandidate, openVoteConfirm, submitVote, openModal, closeModal, logout, Toast });
