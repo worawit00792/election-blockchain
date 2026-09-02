@@ -1,4 +1,4 @@
-/* UBU Election System 2570 — CSS */
+  /* UBU Election System 2570 — CSS */
 :root {
   --navy: #0f172a; --royal: #1e3a8a; --blue: #2563eb; --blue-glow: #60a5fa;
   --green: #10b981; --gold: #f59e0b; --purple: #7c3aed; --red: #ef4444;
@@ -37,7 +37,7 @@ body{font-family:'Noto Sans Thai','Sarabun',sans-serif;background:var(--g50);col
 .page-body{margin-top:64px;min-height:calc(100vh - 64px)}
 
 /* Hero */
-.hero{position:relative;overflow:hidden;background:var(--navy);min-height:420px;display:flex;align-items:center}
+.hero{position:relative;overflow:hidden;background:linear-gradient(rgba(15,23,42,.78),rgba(15,23,42,.78)),url('/images/hero-candidates.jpg') center/cover no-repeat;min-height:420px;display:flex;align-items:center}
 .hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(37,99,235,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,.06) 1px,transparent 1px);background-size:48px 48px}
 .hero-glow{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;pointer-events:none}
 .hero-gl1{width:500px;height:500px;background:radial-gradient(circle,#3b82f6,transparent);top:-200px;right:-100px}
