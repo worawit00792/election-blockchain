@@ -28,6 +28,7 @@ const REDIRECT_URI = process.env.RENDER_EXTERNAL_URL
   ? `${process.env.RENDER_EXTERNAL_URL}/auth/google/callback`
   : `http://127.0.0.1:${PORT}/auth/google/callback`;
 let provider, wallet, contract, contractABI, contractAddress;
+let closingTime = null; // เวลาปิดรับคะแนน (ISO string) — Admin ตั้งเอง, เก็บไว้ในหน่วยความจำเซิร์ฟเวอร์
 // ─── Candidate extra data (เก็บ in-memory: นโยบาย, ประวัติ, รูป, สี, emoji) ──
 let candidateExtra = {}; // key = candidateId (number)
 async function initBlockchain() {
@@ -122,12 +123,12 @@ app.get("/api/candidates", async (req, res) => {
 });
 
 app.get("/api/stats", async (req, res) => {
-  if (!contract) return res.json({ totalVotes: 0, isOpen: true, totalVoters: 2450 });
+  if (!contract) return res.json({ totalVotes: 0, isOpen: true, totalVoters: 2450, closingTime });
   try {
     const totalVotes = Number(await contract.totalVotes());
     const isOpen     = await contract.isOpen();
-    res.json({ totalVotes, isOpen, totalVoters: 2450 });
-  } catch (err) { res.json({ totalVotes: 0, isOpen: true, totalVoters: 2450 }); }
+    res.json({ totalVotes, isOpen, totalVoters: 2450, closingTime });
+  } catch (err) { res.json({ totalVotes: 0, isOpen: true, totalVoters: 2450, closingTime }); }
 });
 app.post("/api/vote", requireLogin, async (req, res) => {
   const { candidateId } = req.body;
@@ -166,6 +167,15 @@ app.post("/api/admin/toggle", requireAdmin, async (req, res) => {
     const isOpen = await contract.isOpen();
     res.json({ ok: true, isOpen });
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+// ─── ตั้ง/ล้าง เวลาปิดรับคะแนน (สำหรับนับถอยหลังหน้าเว็บ) ───────────
+app.post("/api/admin/set-closing-time", requireAdmin, (req, res) => {
+  const { closingTime: newTime } = req.body; // ต้องเป็น ISO string เช่น "2026-09-20T18:00:00"
+  if (newTime && isNaN(Date.parse(newTime))) {
+    return res.status(400).json({ error: "รูปแบบวันเวลาไม่ถูกต้อง" });
+  }
+  closingTime = newTime || null; // ส่ง null/ว่าง มา = ล้างเวลา (ไม่แสดงนับถอยหลัง)
+  res.json({ ok: true, closingTime });
 });
 // เพิ่มผู้สมัคร (Smart Contract + Extra data + รูป)
 app.post("/api/admin/add-candidate", requireAdmin, upload.single("photo"), async (req, res) => {
