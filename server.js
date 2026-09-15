@@ -29,6 +29,7 @@ const REDIRECT_URI = process.env.RENDER_EXTERNAL_URL
   : `http://127.0.0.1:${PORT}/auth/google/callback`;
 let provider, wallet, contract, contractABI, contractAddress;
 let closingTime = null; // เวลาปิดรับคะแนน (ISO string) — Admin ตั้งเอง, เก็บไว้ในหน่วยความจำเซิร์ฟเวอร์
+let lastVoteAt = null; // เวลาที่มีคนโหวตล่าสุด (ISO string) — สำหรับโชว์ LIVE indicator หน้าผลคะแนน
 // ─── Candidate extra data (เก็บ in-memory: นโยบาย, ประวัติ, รูป, สี, emoji) ──
 let candidateExtra = {}; // key = candidateId (number)
 async function initBlockchain() {
@@ -123,12 +124,12 @@ app.get("/api/candidates", async (req, res) => {
 });
 
 app.get("/api/stats", async (req, res) => {
-  if (!contract) return res.json({ totalVotes: 0, isOpen: true, totalVoters: 2450, closingTime });
+  if (!contract) return res.json({ totalVotes: 0, isOpen: true, totalVoters: 2450, closingTime, lastVoteAt });
   try {
     const totalVotes = Number(await contract.totalVotes());
     const isOpen     = await contract.isOpen();
-    res.json({ totalVotes, isOpen, totalVoters: 2450, closingTime });
-  } catch (err) { res.json({ totalVotes: 0, isOpen: true, totalVoters: 2450, closingTime }); }
+    res.json({ totalVotes, isOpen, totalVoters: 2450, closingTime, lastVoteAt });
+  } catch (err) { res.json({ totalVotes: 0, isOpen: true, totalVoters: 2450, closingTime, lastVoteAt }); }
 });
 app.post("/api/vote", requireLogin, async (req, res) => {
   const { candidateId } = req.body;
@@ -146,6 +147,7 @@ app.post("/api/vote", requireLogin, async (req, res) => {
     const receipt = await tx.wait();
     req.session.user.hasVoted = true;
     req.session.user.txHash   = receipt.hash;
+    lastVoteAt = new Date().toISOString(); // ★ บันทึกเวลาโหวตล่าสุด สำหรับ LIVE indicator
     res.json({ ok: true, txHash: receipt.hash, blockNumber: receipt.blockNumber });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
