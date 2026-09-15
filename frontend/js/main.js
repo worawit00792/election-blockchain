@@ -176,19 +176,64 @@ function selectCandidate(id) {
   const btn = document.getElementById('vote-submit-btn');
   if (btn) { btn.disabled=false; btn.style.opacity='1'; }
 }
+/* ── หน้าจอโหลดเต็มจอตอนกำลังยืนยันการลงคะแนน ───────────────── */
+let _voteLoadingMsgInterval = null;
+const VOTE_LOADING_MESSAGES = [
+  'กำลังตรวจสอบสิทธิ์การลงคะแนน...',
+  'กำลังบันทึกคะแนนของคุณ...',
+  'กำลังยืนยันผลลัพธ์...',
+  'ใกล้เสร็จแล้ว โปรดรอสักครู่...',
+];
+function showVoteLoadingOverlay() {
+  let ov = document.getElementById('vote-loading-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'vote-loading-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,var(--navy),#1e3a8a);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px';
+    ov.innerHTML = `
+      <div style="width:64px;height:64px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .9s linear infinite;margin-bottom:28px"></div>
+      <div id="vote-loading-text" style="color:#fff;font-size:17px;font-weight:700;text-align:center;min-height:26px;transition:opacity .25s">${VOTE_LOADING_MESSAGES[0]}</div>
+      <div style="width:220px;height:6px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden;margin-top:20px">
+        <div style="width:40%;height:100%;background:#60a5fa;border-radius:4px;animation:voteBarSlide 1.3s ease-in-out infinite"></div>
+      </div>
+      <div style="color:rgba(255,255,255,.4);font-size:13px;margin-top:18px">โปรดรอสักครู่ ระบบกำลังดำเนินการให้ปลอดภัยที่สุด</div>
+      <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes voteBarSlide { 0%{margin-left:-40%} 50%{margin-left:60%} 100%{margin-left:-40%} }
+      </style>`;
+    document.body.appendChild(ov);
+  }
+  ov.style.display = 'flex';
+  let i = 0;
+  const textEl = document.getElementById('vote-loading-text');
+  _voteLoadingMsgInterval = setInterval(() => {
+    i = (i + 1) % VOTE_LOADING_MESSAGES.length;
+    if (!textEl) return;
+    textEl.style.opacity = 0;
+    setTimeout(() => { textEl.textContent = VOTE_LOADING_MESSAGES[i]; textEl.style.opacity = 1; }, 250);
+  }, 2200);
+}
+function hideVoteLoadingOverlay(finalMessage) {
+  clearInterval(_voteLoadingMsgInterval);
+  const ov = document.getElementById('vote-loading-overlay');
+  const textEl = document.getElementById('vote-loading-text');
+  if (finalMessage && textEl) { textEl.style.opacity = 0; setTimeout(()=>{ textEl.textContent = finalMessage; textEl.style.opacity = 1; }, 250); }
+  if (ov) setTimeout(() => { ov.style.display = 'none'; }, finalMessage ? 700 : 0);
+}
+
 async function submitVote() {
   if (!selectedCandidateId) return;
-  const btn = document.getElementById('m-confirm-btn');
-  if (btn) { btn.disabled=true; btn.textContent='กำลังบันทึกบน Blockchain...'; }
+  closeModal('vote-modal');
+  showVoteLoadingOverlay(); // ★ โชว์หน้าจอโหลดเต็มจอ แทนปุ่มค้างเฉยๆ ระหว่างรอ Blockchain ยืนยัน
   try {
     const d = await api('/api/vote',{method:'POST',body:JSON.stringify({candidateId:selectedCandidateId})});
-    closeModal('vote-modal');
-    Toast.success('ลงคะแนนสำเร็จ! บันทึกบน Blockchain แล้ว');
-    setTimeout(()=>location.href=`/success.html?tx=${d.txHash}&block=${d.blockNumber}`,1000);
+    hideVoteLoadingOverlay('✅ สำเร็จ! กำลังพาไปหน้าถัดไป...');
+    setTimeout(()=>location.href=`/success.html?tx=${d.txHash}&block=${d.blockNumber}`,700);
   } catch(err) {
+    hideVoteLoadingOverlay();
     Toast.error(err.message);
+    const btn = document.getElementById('m-confirm-btn');
     if (btn) { btn.disabled=false; btn.textContent='ยืนยันการลงคะแนน ✓'; }
-    closeModal('vote-modal');
   }
 }
 function openVoteConfirm() {
@@ -198,6 +243,43 @@ function openVoteConfirm() {
 }
 /* ── Results ────────────────────────────────────────────── */
 // ★★★ แก้ไขแล้ว: ระหว่างเปิดรับคะแนน โชว์แค่ยอดผู้ใช้สิทธิ์ ไม่โชว์คะแนนแยกผู้สมัคร ★★★
+/* ── ตัวเลขนับไต่ขึ้น (Odometer/Count-up Animation) ─────────── */
+function animateCountUp(elId, target, duration=900) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const start = 0;
+  const startTime = performance.now();
+  function frame(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic — ไวตอนแรก ช้าลงตอนใกล้จบ ดูเป็นธรรมชาติ
+    const current = Math.round(start + (target - start) * eased);
+    el.textContent = current.toLocaleString('th-TH');
+    if (progress < 1) requestAnimationFrame(frame);
+    else el.textContent = target.toLocaleString('th-TH');
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ── LIVE: แสดงเวลาผ่านไปนับจากโหวตล่าสุด (อัปเดตทุกวินาที) ── */
+let _liveAgoInterval = null;
+function startLiveAgo(lastVoteAtISO, elId) {
+  if (_liveAgoInterval) clearInterval(_liveAgoInterval);
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!lastVoteAtISO) { el.textContent = 'ยังไม่มีการลงคะแนน'; return; }
+
+  function tick() {
+    const diffSec = Math.max(0, Math.floor((Date.now() - new Date(lastVoteAtISO).getTime()) / 1000));
+    let text;
+    if (diffSec < 60) text = `${diffSec} วินาทีที่แล้ว`;
+    else if (diffSec < 3600) text = `${Math.floor(diffSec/60)} นาทีที่แล้ว`;
+    else text = `${Math.floor(diffSec/3600)} ชั่วโมงที่แล้ว`;
+    el.textContent = `โหวตล่าสุดเมื่อ ${text}`;
+  }
+  tick();
+  _liveAgoInterval = setInterval(tick, 1000);
+}
+
 /* ── นับถอยหลังเวลาปิดรับคะแนน (Real-time Countdown) ───────── */
 let _countdownInterval = null;
 function startCountdown(closingTimeISO, elId) {
@@ -211,7 +293,7 @@ function startCountdown(closingTimeISO, elId) {
     const diff = target - now;
 
     if (diff <= 0) {
-      el.innerHTML = `<span style="color:#ef4444;font-weight:800">⏰ ปิดรับคะแนนแล้ว</span>`;
+      el.innerHTML = `<span style="color:#ef4444">⏰ ปิดรับคะแนนแล้ว</span>`;
       clearInterval(_countdownInterval);
       return;
     }
@@ -222,7 +304,7 @@ function startCountdown(closingTimeISO, elId) {
     const parts = [];
     if (d > 0) parts.push(`${d} วัน`);
     parts.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
-    el.innerHTML = `⏳ ปิดรับคะแนนใน <span style="font-weight:800;color:var(--navy)">${parts.join(' ')}</span>`;
+    el.textContent = parts.join(' ');
   }
   tick();
   _countdownInterval = setInterval(tick, 1000);
@@ -230,23 +312,52 @@ function startCountdown(closingTimeISO, elId) {
 
 async function loadResults() {
   try {
-    const { isOpen, totalVotes, closingTime } = await api('/api/stats');
+    const { isOpen, totalVotes, totalVoters, lastVoteAt, closingTime } = await api('/api/stats');
     const container = document.getElementById('results-container');
     const tvEl = document.getElementById('total-votes');
 
+    // ★ ช่องสถิติที่ 3 บนสุด — นับถอยหลังเวลาปิดรับคะแนน (โชว์ตลอด ไม่ว่า isOpen จะเป็นอะไร ถ้ามีการตั้งเวลาไว้)
+    const topCountdownEl = document.getElementById('countdown-topbox');
+    if (topCountdownEl) {
+      if (closingTime) startCountdown(closingTime, 'countdown-topbox');
+      else topCountdownEl.textContent = 'ยังไม่กำหนด';
+    }
+
     // ★ ระหว่างเปิดรับคะแนน — โชว์แค่ยอดผู้ใช้สิทธิ์ ไม่โชว์คะแนนแยกผู้สมัคร
     if (isOpen) {
+      const voters = totalVoters || 2450;
+      const pct = Math.min(100, Math.round((totalVotes / voters) * 100));
       if (container) {
         container.innerHTML = `
           <div style="text-align:center;padding:56px 32px;background:var(--g50);border-radius:16px">
             <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px;color:#fff">🗳️</div>
             <h2 style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:8px">การเลือกตั้งกำลังดำเนินอยู่</h2>
             <p style="color:var(--g500);margin-bottom:4px;max-width:400px;margin-left:auto;margin-right:auto">เพื่อความยุติธรรมและป้องกันการชี้นำผู้ลงคะแนน ผลคะแนนจะประกาศให้ทราบหลังปิดรับคะแนนเท่านั้น</p>
-            ${closingTime ? `<div id="countdown-box" style="margin-top:18px;padding:10px 20px;background:#fff;border:1.5px solid var(--g200);border-radius:999px;display:inline-block;font-size:15px"></div>` : ''}
-            <div style="margin-top:24px;font-size:40px;font-weight:900;color:var(--navy)">${totalVotes}</div>
+
+            <div style="max-width:320px;margin:24px auto 0">
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--g500);margin-bottom:6px">
+                <span>ผู้มาใช้สิทธิ์แล้ว</span><span>${pct}%</span>
+              </div>
+              <div style="height:10px;background:var(--g200);border-radius:6px;overflow:hidden">
+                <div id="turnout-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#1d4ed8);border-radius:6px;transition:width 1.1s cubic-bezier(.25,.8,.25,1)"></div>
+              </div>
+            </div>
+
+            <div style="margin-top:24px;font-size:40px;font-weight:900;color:var(--navy)" id="total-votes-odometer">0</div>
             <div style="font-size:13px;color:var(--g400)">คนมาใช้สิทธิ์แล้ว</div>
+
+            <div class="badge-live" style="margin-top:16px;display:inline-flex">
+              <span style="width:7px;height:7px;border-radius:50%;background:#34d399;flex-shrink:0"></span>
+              <span id="live-ago-box">กำลังโหลด...</span>
+            </div>
           </div>`;
-        if (closingTime) startCountdown(closingTime, 'countdown-box');
+        // สั่งขยับแถบ Progress Bar หลัง Paint เฟรมแรก ให้เห็น Animation วิ่งเข้า (ไม่ใช่โผล่มาเลยแบบไม่มีการเคลื่อนไหว)
+        requestAnimationFrame(() => {
+          const bar = document.getElementById('turnout-bar');
+          if (bar) bar.style.width = pct + '%';
+        });
+        animateCountUp('total-votes-odometer', totalVotes);
+        startLiveAgo(lastVoteAt, 'live-ago-box');
       }
       if (tvEl) tvEl.textContent = totalVotes;
       return; // ★ ออกจากฟังก์ชันเลย ไม่ไปดึง candidates มาโชว์คะแนน
