@@ -198,9 +198,39 @@ function openVoteConfirm() {
 }
 /* ── Results ────────────────────────────────────────────── */
 // ★★★ แก้ไขแล้ว: ระหว่างเปิดรับคะแนน โชว์แค่ยอดผู้ใช้สิทธิ์ ไม่โชว์คะแนนแยกผู้สมัคร ★★★
+/* ── นับถอยหลังเวลาปิดรับคะแนน (Real-time Countdown) ───────── */
+let _countdownInterval = null;
+function startCountdown(closingTimeISO, elId) {
+  if (_countdownInterval) clearInterval(_countdownInterval); // กันซ้อนถ้าเคยเรียกไว้ก่อน
+  const el = document.getElementById(elId);
+  if (!el || !closingTimeISO) return;
+
+  function tick() {
+    const now = new Date().getTime();
+    const target = new Date(closingTimeISO).getTime();
+    const diff = target - now;
+
+    if (diff <= 0) {
+      el.innerHTML = `<span style="color:#ef4444;font-weight:800">⏰ ปิดรับคะแนนแล้ว</span>`;
+      clearInterval(_countdownInterval);
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    const parts = [];
+    if (d > 0) parts.push(`${d} วัน`);
+    parts.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
+    el.innerHTML = `⏳ ปิดรับคะแนนใน <span style="font-weight:800;color:var(--navy)">${parts.join(' ')}</span>`;
+  }
+  tick();
+  _countdownInterval = setInterval(tick, 1000);
+}
+
 async function loadResults() {
   try {
-    const { isOpen, totalVotes } = await api('/api/stats');
+    const { isOpen, totalVotes, closingTime } = await api('/api/stats');
     const container = document.getElementById('results-container');
     const tvEl = document.getElementById('total-votes');
 
@@ -212,9 +242,11 @@ async function loadResults() {
             <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px;color:#fff">🗳️</div>
             <h2 style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:8px">การเลือกตั้งกำลังดำเนินอยู่</h2>
             <p style="color:var(--g500);margin-bottom:4px;max-width:400px;margin-left:auto;margin-right:auto">เพื่อความยุติธรรมและป้องกันการชี้นำผู้ลงคะแนน ผลคะแนนจะประกาศให้ทราบหลังปิดรับคะแนนเท่านั้น</p>
+            ${closingTime ? `<div id="countdown-box" style="margin-top:18px;padding:10px 20px;background:#fff;border:1.5px solid var(--g200);border-radius:999px;display:inline-block;font-size:15px"></div>` : ''}
             <div style="margin-top:24px;font-size:40px;font-weight:900;color:var(--navy)">${totalVotes}</div>
             <div style="font-size:13px;color:var(--g400)">คนมาใช้สิทธิ์แล้ว</div>
           </div>`;
+        if (closingTime) startCountdown(closingTime, 'countdown-box');
       }
       if (tvEl) tvEl.textContent = totalVotes;
       return; // ★ ออกจากฟังก์ชันเลย ไม่ไปดึง candidates มาโชว์คะแนน
