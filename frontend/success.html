@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ลงคะแนนสำเร็จ – สภานักศึกษา 2570</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="success">
+<nav class="navbar"><div class="container navbar-inner">
+  <a href="/home.html" class="nav-logo"><img src="/images/ubu-logo.png" alt="UBU" style="height:48px;width:auto;object-fit:contain"><div><div class="logo-main">เลือกตั้งสภานักศึกษา</div><div class="logo-sub">มหาวิทยาลัยอุบลราชธานี 2570</div></div></a>
+  <button class="nav-toggle" id="nav-toggle" aria-label="เปิดเมนู"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/home.html" class="nav-link">หน้าหลัก</a>
+    <a href="/candidates.html" class="nav-link">ผู้สมัคร</a>
+    <a href="/results.html" class="nav-link">ผลคะแนน</a>
+  </div>
+  <div id="nav-auth" class="nav-auth"></div>
+</div></nav>
+
+<div class="page-body" style="background:var(--g50);min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:40px 24px">
+  <div style="max-width:600px;width:100%">
+
+    <!-- Success Card -->
+    <div style="background:#fff;border-radius:var(--r-xl);box-shadow:0 8px 40px rgba(0,0,0,.12);overflow:hidden">
+
+      <!-- Top green bar -->
+      <div style="background:linear-gradient(135deg,#10b981,#059669);padding:40px;text-align:center">
+        <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px;border:3px solid rgba(255,255,255,.4)">✓</div>
+        <h1 style="color:#fff;font-size:28px;font-weight:800;margin-bottom:6px">ลงคะแนนสำเร็จ!</h1>
+        <p style="color:rgba(255,255,255,.8);font-size:14px">คะแนนของคุณถูกบันทึกบน Solidity Smart Contract แล้ว</p>
+      </div>
+
+      <!-- ★ โชว์ผู้สมัครที่เลือก "ครั้งเดียว" — จะไม่ปรากฏขึ้นมาให้เห็นอีกหากรีเฟรชหรือกลับมาดูซ้ำ -->
+      <div id="voted-once-section" style="display:none;padding:28px 32px 0;text-align:center;border-bottom:1px solid var(--g100)">
+        <div id="voted-photo-wrap" style="width:88px;height:88px;border-radius:50%;overflow:hidden;margin:0 auto 14px;border:3px solid var(--g200);background:var(--g100)">
+          <img id="voted-photo" src="" alt="" style="width:100%;height:100%;object-fit:cover">
+        </div>
+        <div style="font-size:13px;color:var(--g500);margin-bottom:4px">คุณลงคะแนนให้</div>
+        <div id="voted-name" style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:2px"></div>
+        <div id="voted-party" style="font-size:13px;color:var(--g500);margin-bottom:16px"></div>
+        <div class="alert alert-warn" style="text-align:left;margin-bottom:24px;font-size:13px">
+          ⚠️ ข้อความนี้จะแสดงเพียงครั้งเดียวเท่านั้น เพื่อป้องกันการนำไปใช้เป็นหลักฐานบังคับหรือซื้อเสียง — รีเฟรชหรือกลับมาดูซ้ำจะไม่แสดงอีก
+        </div>
+      </div>
+
+      <!-- Transaction info -->
+      <div style="padding:28px 32px">
+        <div style="font-size:12px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px">ข้อมูล Transaction</div>
+
+        <div style="margin-bottom:24px">
+          <div style="font-size:12px;color:var(--g500);margin-bottom:4px">Transaction Hash</div>
+          <div id="tx-hash" style="font-family:monospace;font-size:12px;background:var(--g50);border:1px solid var(--g200);border-radius:var(--r-md);padding:10px 14px;word-break:break-all;color:var(--navy)">-</div>
+        </div>
+
+        <div style="display:flex;gap:12px">
+          <a href="/results.html" class="btn btn-primary" style="flex:1;justify-content:center">ดูผลคะแนน →</a>
+          <a href="/home.html" class="btn btn-ghost" style="flex:1;justify-content:center">กลับหน้าหลัก</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast-container" class="toast-wrap"></div>
+<script src="/js/main.js"></script>
+<script>
+const params=new URLSearchParams(location.search);
+const tx=params.get('tx');
+if(tx)document.getElementById('tx-hash').textContent=tx;
+
+// ★ โชว์ผู้สมัครที่เลือก "ครั้งเดียว" — getVotedCandidateOnce() มาจาก main.js จะลบข้อมูลทิ้งทันทีหลังอ่าน
+const voted = getVotedCandidateOnce();
+if (voted) {
+  document.getElementById('voted-once-section').style.display = 'block';
+  document.getElementById('voted-name').textContent  = voted.name || '';
+  document.getElementById('voted-party').textContent = voted.party || '';
+  const img = document.getElementById('voted-photo');
+  img.src = `/images/${voted.photo}`;
+  img.onerror = () => { img.closest('#voted-photo-wrap').outerHTML = `<div style="font-size:40px;margin-bottom:14px">${voted.emoji||'🗳️'}</div>`; };
+}
+</script>
+</body></html>
