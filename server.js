@@ -148,7 +148,16 @@ app.post("/api/vote", requireLogin, async (req, res) => {
     req.session.user.hasVoted = true;
     req.session.user.txHash   = receipt.hash;
     lastVoteAt = new Date().toISOString(); // ★ บันทึกเวลาโหวตล่าสุด สำหรับ LIVE indicator
-    res.json({ ok: true, txHash: receipt.hash, blockNumber: receipt.blockNumber });
+
+    // ★ ดึงชื่อ+รูปผู้สมัครที่เลือก ส่งกลับไปให้หน้า success.html โชว์ "ครั้งเดียว" (ไม่ได้เก็บถาวรที่ไหนเลย)
+    let votedCandidate = null;
+    try {
+      const [, name, party] = await contract.getCandidate(candidateId);
+      const extra = candidateExtra[candidateId] || {};
+      votedCandidate = { name, party, photo: extra.photo || `candidate-${candidateId}.png`, emoji: extra.emoji || "🗳️" };
+    } catch (_) { /* ไม่กระทบการโหวตหลัก ถ้าดึงข้อมูลนี้พลาดก็แค่ไม่โชว์รูป */ }
+
+    res.json({ ok: true, txHash: receipt.hash, blockNumber: receipt.blockNumber, votedCandidate });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 // ─── Admin ───────────────────────────────────────────────────
