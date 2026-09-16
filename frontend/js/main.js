@@ -176,6 +176,15 @@ function selectCandidate(id) {
   const btn = document.getElementById('vote-submit-btn');
   if (btn) { btn.disabled=false; btn.style.opacity='1'; }
 }
+/* ── อ่านข้อมูลผู้สมัครที่โหวต "ครั้งเดียว" แล้วลบทันที (ป้องกันดูซ้ำ/เป็นหลักฐานบังคับโหวต) ── */
+function getVotedCandidateOnce() {
+  try {
+    const raw = sessionStorage.getItem('votedCandidateOnce');
+    sessionStorage.removeItem('votedCandidateOnce'); // ★ ลบทันทีไม่ว่าจะอ่านสำเร็จหรือไม่ — รีเฟรช/เข้าใหม่จะไม่เจอแล้ว
+    return raw ? JSON.parse(raw) : null;
+  } catch(_) { return null; }
+}
+
 /* ── หน้าจอโหลดเต็มจอตอนกำลังยืนยันการลงคะแนน ───────────────── */
 let _voteLoadingMsgInterval = null;
 const VOTE_LOADING_MESSAGES = [
@@ -221,14 +230,24 @@ function hideVoteLoadingOverlay(finalMessage) {
   if (ov) setTimeout(() => { ov.style.display = 'none'; }, finalMessage ? 700 : 0);
 }
 
+const VOTE_LOADING_MIN_MS = 2600; // ★ เวลาขั้นต่ำที่หน้าโหลดต้องแสดง (กันโหลดเร็วเกินจนดูเหมือนไม่มีอะไรเกิดขึ้น)
 async function submitVote() {
   if (!selectedCandidateId) return;
   closeModal('vote-modal');
+  const loadingStartedAt = Date.now(); // ★ จับเวลาเริ่มโหลด
   showVoteLoadingOverlay(); // ★ โชว์หน้าจอโหลดเต็มจอ แทนปุ่มค้างเฉยๆ ระหว่างรอ Blockchain ยืนยัน
   try {
     const d = await api('/api/vote',{method:'POST',body:JSON.stringify({candidateId:selectedCandidateId})});
-    hideVoteLoadingOverlay('✅ สำเร็จ! กำลังพาไปหน้าถัดไป...');
-    setTimeout(()=>location.href=`/success.html?tx=${d.txHash}&block=${d.blockNumber}`,700);
+    // ★ เก็บข้อมูลผู้สมัครที่เลือกไว้ "ชั่วคราว" ใน sessionStorage เพื่อโชว์ในหน้าถัดไปแค่ครั้งเดียว
+    if (d.votedCandidate) {
+      try { sessionStorage.setItem('votedCandidateOnce', JSON.stringify(d.votedCandidate)); } catch(_) {}
+    }
+    const elapsed = Date.now() - loadingStartedAt;
+    const remain  = Math.max(0, VOTE_LOADING_MIN_MS - elapsed); // ★ ถ้าเสร็จเร็วกว่าเวลาขั้นต่ำ ให้รอเพิ่มจนครบ
+    setTimeout(() => {
+      hideVoteLoadingOverlay('✅ สำเร็จ! กำลังพาไปหน้าถัดไป...');
+      setTimeout(()=>location.href=`/success.html?tx=${d.txHash}&block=${d.blockNumber}`,700);
+    }, remain);
   } catch(err) {
     hideVoteLoadingOverlay();
     Toast.error(err.message);
