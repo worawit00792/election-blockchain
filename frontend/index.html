@@ -72,6 +72,15 @@ body{background:#0a0a3e;font-family:'Noto Sans Thai',sans-serif}
   font-size:13px;
   display:flex;align-items:center;justify-content:center;gap:6px;
 }
+
+/* ── เอฟเฟกต์วงกลมขยายจากปุ่ม (เปลี่ยนหน้า) ── */
+.reveal-circle{
+  position:fixed;left:0;top:0;width:100px;height:100px;border-radius:50%;
+  background:linear-gradient(135deg,#ff4500,#ff8c00);
+  transform:translate(-50%,-50%) scale(0);
+  z-index:9999;pointer-events:none;
+  transition:transform .75s cubic-bezier(.65,0,.35,1);
+}
 </style>
 </head>
 <body>
@@ -100,5 +109,54 @@ for(let i=0;i<120;i++){
   el.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${size}px;height:${size}px;animation-delay:${Math.random()*4}s;animation-duration:${2+Math.random()*3}s`;
   s.appendChild(el);
 }
+</script>
+
+<script>
+/* เอฟเฟกต์วงกลมขยายจากปุ่ม "ลงคะแนนเลยตอนนี้" แล้วค่อยไปหน้าถัดไป */
+(function(){
+  var btn = document.querySelector('.btn-hero');
+  if(!btn) return;
+  var leaving = false;
+
+  btn.addEventListener('click', function(e){
+    // กดพร้อม ⌘/Ctrl/Shift หรือคลิกขวา = ให้เปิดแท็บใหม่ตามปกติ ไม่เล่นเอฟเฟกต์
+    if(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    // คนที่ตั้งค่า "ลดการเคลื่อนไหว" ในระบบ ไปหน้าถัดไปทันที
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    e.preventDefault();
+    if(leaving) return;
+    leaving = true;
+
+    var r  = btn.getBoundingClientRect();
+    var cx = r.left + r.width/2, cy = r.top + r.height/2;
+    var vw = window.innerWidth,  vh = window.innerHeight;
+    // รัศมีที่ต้องขยายให้ถึงมุมจอที่ไกลที่สุด
+    var R = Math.hypot(Math.max(cx, vw-cx), Math.max(cy, vh-cy));
+    var scale = (R*2/100) * 1.05;
+
+    var c = document.createElement('div');
+    c.className = 'reveal-circle';
+    c.style.left = cx + 'px';
+    c.style.top  = cy + 'px';
+    document.body.appendChild(c);
+    c.getBoundingClientRect();   // บังคับให้เบราว์เซอร์วาดตำแหน่งเริ่มต้นก่อน
+    c.style.transform = 'translate(-50%,-50%) scale(' + scale + ')';
+
+    var done = false;
+    function go(){ if(done) return; done = true; window.location.href = btn.href; }
+    c.addEventListener('transitionend', go);
+    setTimeout(go, 1000);        // กันกรณีที่ transitionend ไม่ทำงาน
+  });
+
+  // กดปุ่มย้อนกลับของเบราว์เซอร์ แล้วกลับมาหน้านี้ ต้องไม่ค้างเป็นสีส้มเต็มจอ
+  window.addEventListener('pageshow', function(e){
+    if(e.persisted){
+      var old = document.querySelectorAll('.reveal-circle');
+      for(var i=0;i<old.length;i++) old[i].remove();
+      leaving = false;
+    }
+  });
+})();
 </script>
 </body></html>
