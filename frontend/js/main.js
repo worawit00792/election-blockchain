@@ -136,7 +136,7 @@ async function loadVoteCandidates() {
         <div style="text-align:center;padding:48px 40px;background:#fff;border-radius:var(--r-xl);border:2px solid var(--green);box-shadow:0 8px 32px rgba(16,185,129,.15)">
           <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px;box-shadow:0 4px 16px rgba(16,185,129,.3);color:#fff">✓</div>
           <h2 style="font-size:28px;font-weight:800;color:var(--navy);margin-bottom:8px">คุณได้ลงคะแนนแล้ว</h2>
-          <p style="color:var(--g500);margin-bottom:8px">คะแนนของคุณถูกบันทึกบน Blockchain เรียบร้อยแล้ว</p>
+          <p style="color:var(--g500);margin-bottom:8px">คะแนนของคุณถูกบันทึกเรียบร้อยแล้ว</p>
           <p style="color:var(--g400);font-size:13px;margin-bottom:28px">ไม่สามารถลงคะแนนซ้ำได้</p>
           <div style="display:flex;gap:12px;justify-content:center">
             <a href="/results.html" class="btn btn-primary btn-lg">ดูผลคะแนน →</a>
