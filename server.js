@@ -30,8 +30,44 @@ const REDIRECT_URI = process.env.RENDER_EXTERNAL_URL
 let provider, wallet, contract, contractABI, contractAddress;
 let closingTime = null; // เวลาปิดรับคะแนน (ISO string) — Admin ตั้งเอง, เก็บไว้ในหน่วยความจำเซิร์ฟเวอร์
 let lastVoteAt = null; // เวลาที่มีคนโหวตล่าสุด (ISO string) — สำหรับโชว์ LIVE indicator หน้าผลคะแนน
-// ─── Candidate extra data (เก็บ in-memory: นโยบาย, ประวัติ, รูป, สี, emoji) ──
+// ─── Candidate extra data (นโยบาย, ประวัติ, รูป, สี, emoji, hidden) เก็บลงไฟล์ candidate-extra.json ──
 let candidateExtra = {}; // key = candidateId (number)
+// ─── ตั้งค่าการเลือกตั้งที่ต้องไม่หายเมื่อรีสตาร์ท (เวลาปิดรับคะแนน) เก็บลงไฟล์ election-settings.json ──
+// หมายเหตุ: บน Render แผนฟรี ไฟล์ที่เขียนตอนรันจะหายเมื่อรีสตาร์ท/Deploy ใหม่ จึงมีตัวแปร Environment สำรองไว้ให้
+//   CLOSING_TIME=2026-10-20T16:00:00+07:00   เวลาปิดรับคะแนน (ใช้เมื่อไม่มีไฟล์)
+//   HIDDEN_CANDIDATES=5,6                     หมายเลขผู้สมัครที่ซ่อนถาวร (ซ่อนจากทุกหน้า และโหวตไม่ได้)
+const settingsPath = path.join(__dirname, "election-settings.json");
+const ENV_HIDDEN = new Set((process.env.HIDDEN_CANDIDATES || "").split(",").map(x => parseInt(x.trim())).filter(Boolean));
+function isHidden(id) { return !!(candidateExtra[id] && candidateExtra[id].hidden) || ENV_HIDDEN.has(Number(id)); }
+function loadSettings() {
+  try {
+    if (fs.existsSync(settingsPath)) {
+      const st = JSON.parse(fs.readFileSync(settingsPath));
+      closingTime = (st && st.closingTime && !isNaN(Date.parse(st.closingTime))) ? new Date(st.closingTime).toISOString() : null;
+      return;
+    }
+  } catch (_) {}
+  if (process.env.CLOSING_TIME && !isNaN(Date.parse(process.env.CLOSING_TIME))) closingTime = new Date(process.env.CLOSING_TIME).toISOString();
+}
+function saveSettings() { try { fs.writeFileSync(settingsPath, JSON.stringify({ closingTime }, null, 2)); } catch (e) { console.log("⚠️  บันทึกการตั้งค่าไม่สำเร็จ:", e.message); } }
+// ─── ปิดการเลือกตั้งอัตโนมัติเมื่อถึงเวลาที่ Admin ตั้งไว้ ──
+let autoClosePromise = null;
+async function checkAutoClose() {
+  if (!contract || !closingTime) return;
+  if (Date.now() < Date.parse(closingTime)) return;
+  if (autoClosePromise) return autoClosePromise;      // กันหลายคำขอสั่งปิดพร้อมกัน
+  autoClosePromise = (async () => {
+    try {
+      if (await contract.isOpen()) {
+        const tx = await contract.toggleElection(); await tx.wait();
+        console.log("⏰ ปิดการเลือกตั้งอัตโนมัติ (ถึงเวลาที่ตั้งไว้: " + closingTime + ")");
+      }
+    } catch (e) { console.log("⚠️  ปิดอัตโนมัติไม่สำเร็จ:", e.message); }
+    finally { autoClosePromise = null; }
+  })();
+  return autoClosePromise;
+}
+function removeUploaded(req) { try { if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path); } catch (_) {} }
 async function initBlockchain() {
   try {
     const artifactPath = path.join(__dirname, "artifacts/contracts/Election.sol/Election.json");
@@ -104,12 +140,15 @@ app.get("/api/candidates", async (req, res) => {
     const count  = Number(await contract.candidateCount());
     const isOpen = await contract.isOpen();
     const COLORS = ["#2563eb","#f59e0b","#10b981","#7c3aed"];
+    const wantAll = req.query.all === "1" && !!req.session.isAdmin;   // เฉพาะ Admin เห็นผู้สมัครที่ซ่อนอยู่
     const candidates = [];
     for (let i = 1; i <= count; i++) {
+      const hidden = isHidden(i);
+      if (hidden && !wantAll) continue;
       const [id, name, party, slogan, voteCount] = await contract.getCandidate(i);
       const extra = candidateExtra[i] || {};
       candidates.push({
-        id: Number(id), name, party, slogan,
+        id: Number(id), name, party, slogan, hidden,
         // ★ ระหว่างเปิดรับคะแนน ไม่ส่งตัวเลขคะแนนออกไปเลย (null) ป้องกันการชี้นำ/บังคับโหวต
         voteCount: isOpen ? null : Number(voteCount),
         color:    extra.color    || COLORS[i-1] || "#2563eb",
@@ -126,6 +165,7 @@ app.get("/api/candidates", async (req, res) => {
 app.get("/api/stats", async (req, res) => {
   if (!contract) return res.json({ totalVotes: 0, isOpen: true, totalVoters: 2450, closingTime, lastVoteAt });
   try {
+    await checkAutoClose();                                  // ถึงเวลาแล้วปิดให้ก่อนตอบ
     const totalVotes = Number(await contract.totalVotes());
     const isOpen     = await contract.isOpen();
     res.json({ totalVotes, isOpen, totalVoters: 2450, closingTime, lastVoteAt });
@@ -135,6 +175,12 @@ app.post("/api/vote", requireLogin, async (req, res) => {
   const { candidateId } = req.body;
   const email = req.session.user.email;
   if (!contract) return res.status(503).json({ error: "Blockchain not available" });
+  if (closingTime && Date.now() >= Date.parse(closingTime)) {
+    checkAutoClose().catch(() => {});
+    return res.status(403).json({ error: "หมดเวลาลงคะแนนแล้ว" });
+  }
+  const cid = parseInt(candidateId);
+  if (!Number.isInteger(cid) || cid < 1 || isHidden(cid)) return res.status(400).json({ error: "ไม่พบผู้สมัครที่เลือก" });
   try {
     const hasVoted = await contract.hasEmailVoted(email);
     if (hasVoted) return res.status(403).json({ error: "คุณได้ลงคะแนนแล้ว" });
@@ -176,17 +222,22 @@ app.post("/api/admin/toggle", requireAdmin, async (req, res) => {
     const tx = await contract.toggleElection();
     await tx.wait();
     const isOpen = await contract.isOpen();
-    res.json({ ok: true, isOpen });
+    let closingTimeCleared = false;
+    if (isOpen && closingTime) { closingTime = null; saveSettings(); closingTimeCleared = true; }   // เปิดกลับ = เวลาปิดเดิมใช้ไม่ได้แล้ว กันระบบปิดซ้ำเอง
+    res.json({ ok: true, isOpen, closingTimeCleared });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-// ─── ตั้ง/ล้าง เวลาปิดรับคะแนน (สำหรับนับถอยหลังหน้าเว็บ) ───────────
+// ─── ตั้ง/ล้าง เวลาปิดรับคะแนน (ระบบปิดการเลือกตั้งให้อัตโนมัติเมื่อถึงเวลา) ───────────
 app.post("/api/admin/set-closing-time", requireAdmin, (req, res) => {
   const { closingTime: newTime } = req.body; // ต้องเป็น ISO string เช่น "2026-09-20T18:00:00"
   if (newTime && isNaN(Date.parse(newTime))) {
     return res.status(400).json({ error: "รูปแบบวันเวลาไม่ถูกต้อง" });
   }
-  closingTime = newTime || null; // ส่ง null/ว่าง มา = ล้างเวลา (ไม่แสดงนับถอยหลัง)
-  res.json({ ok: true, closingTime });
+  closingTime = newTime ? new Date(newTime).toISOString() : null; // ส่ง null/ว่าง มา = ล้างเวลา (ไม่แสดงนับถอยหลัง และไม่ปิดอัตโนมัติ)
+  saveSettings();
+  const passed = !!closingTime && Date.now() >= Date.parse(closingTime);
+  if (passed) checkAutoClose().catch(() => {});   // เวลาที่ตั้งผ่านไปแล้ว: ปิดการเลือกตั้งทันที
+  res.json({ ok: true, closingTime, closesNow: passed });
 });
 // เพิ่มผู้สมัคร (Smart Contract + Extra data + รูป)
 app.post("/api/admin/add-candidate", requireAdmin, upload.single("photo"), async (req, res) => {
@@ -195,7 +246,12 @@ app.post("/api/admin/add-candidate", requireAdmin, upload.single("photo"), async
     const { name, party, slogan, color, emoji, biography } = req.body;
     let policies = [];
     try { policies = JSON.parse(req.body.policies || "[]"); } catch(e) {}
-    if (!name || !party || !slogan) return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" });
+    if (!name || !party || !slogan) { removeUploaded(req); return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" }); }
+    const votesNow = Number(await contract.totalVotes());
+    if (votesNow > 0 && req.body.confirmLate !== "true") {
+      removeUploaded(req);
+      return res.status(409).json({ error: `มีผู้ลงคะแนนแล้ว ${votesNow} คน การเพิ่มผู้สมัครตอนนี้ไม่ยุติธรรมกับคนที่โหวตไปแล้ว`, needConfirm: true, totalVotes: votesNow });
+    }
     const tx = await contract.addCandidate(name, party, slogan);
     await tx.wait();
     const count = Number(await contract.candidateCount());
@@ -213,21 +269,54 @@ app.post("/api/admin/add-candidate", requireAdmin, upload.single("photo"), async
     };
     saveExtra();
     res.json({ ok: true, message: `เพิ่ม ${name} สำเร็จ` });
+  } catch (err) { removeUploaded(req); res.status(500).json({ error: err.message }); }
+});
+// ซ่อน/แสดงผู้สมัคร (Smart Contract ลบผู้สมัครไม่ได้ จึงใช้ "ซ่อน" แทน: ซ่อนจากทุกหน้าและโหวตให้ไม่ได้)
+// ทำได้เฉพาะตอนยังไม่มีผู้ลงคะแนนเลย เพื่อความยุติธรรม
+app.post("/api/admin/hide-candidate/:id", requireAdmin, async (req, res) => {
+  if (!contract) return res.status(503).json({ error: "Blockchain not available" });
+  try {
+    const id = parseInt(req.params.id);
+    const hide = !(req.body.hidden === false || req.body.hidden === "false");
+    const count = Number(await contract.candidateCount());
+    if (!Number.isInteger(id) || id < 1 || id > count) return res.status(404).json({ error: "ไม่พบผู้สมัคร" });
+    const votesNow = Number(await contract.totalVotes());
+    if (votesNow > 0) return res.status(409).json({ error: `มีผู้ลงคะแนนแล้ว ${votesNow} คน จึงซ่อน/แสดงผู้สมัครไม่ได้ เพื่อความยุติธรรมกับคนที่โหวตไปแล้ว` });
+    if (!hide && ENV_HIDDEN.has(id)) return res.status(400).json({ error: "ผู้สมัครนี้ถูกซ่อนด้วยตัวแปร HIDDEN_CANDIDATES บน Render ต้องแก้ที่นั่น" });
+    if (hide) {
+      let visible = 0;
+      for (let i = 1; i <= count; i++) if (i !== id && !isHidden(i)) visible++;
+      if (visible < 1) return res.status(400).json({ error: "ต้องมีผู้สมัครที่แสดงอยู่อย่างน้อย 1 คน" });
+    }
+    candidateExtra[id] = { ...(candidateExtra[id] || {}), hidden: hide };
+    saveExtra();
+    res.json({ ok: true, hidden: hide, message: hide ? "ซ่อนผู้สมัครแล้ว (หายจากทุกหน้า และโหวตให้ไม่ได้)" : "แสดงผู้สมัครอีกครั้งแล้ว" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-// ลบผู้สมัคร (ลบ extra data ด้วย แต่ Smart Contract ลบไม่ได้)
-app.delete("/api/admin/delete-candidate/:id", requireAdmin, (req, res) => {
-  const id = parseInt(req.params.id);
-  if (candidateExtra[id]) {
-    // ลบรูปด้วยถ้ามี
-    if (candidateExtra[id].photo && candidateExtra[id].photo.startsWith("candidates/")) {
-      const imgPath = path.join(__dirname, "frontend/images", candidateExtra[id].photo);
-      if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+// แก้ไขข้อมูลเสริมของผู้สมัคร (สี อีโมจิ รูป นโยบาย ประวัติ) — ชื่อ พรรค สโลแกน อยู่บน Blockchain แก้ไม่ได้
+app.put("/api/admin/update-candidate/:id", requireAdmin, upload.single("photo"), async (req, res) => {
+  if (!contract) { removeUploaded(req); return res.status(503).json({ error: "Blockchain not available" }); }
+  try {
+    const id = parseInt(req.params.id);
+    const count = Number(await contract.candidateCount());
+    if (!Number.isInteger(id) || id < 1 || id > count) { removeUploaded(req); return res.status(404).json({ error: "ไม่พบผู้สมัคร" }); }
+    const next = { ...(candidateExtra[id] || {}) };
+    if (typeof req.body.color === "string" && /^#[0-9a-fA-F]{6}$/.test(req.body.color)) next.color = req.body.color;
+    if (typeof req.body.emoji === "string") next.emoji = req.body.emoji || "🗳️";
+    if (typeof req.body.biography === "string") next.biography = req.body.biography;
+    if (req.body.policies !== undefined) {
+      let p = []; try { p = JSON.parse(req.body.policies || "[]"); } catch (_) {}
+      next.policies = (Array.isArray(p) ? p : []).map(x => String(x).trim()).filter(Boolean).slice(0, 20);
     }
-    delete candidateExtra[id];
+    if (req.file) {
+      const old = next.photo;
+      if (old && old.startsWith("candidates/")) { const oldPath = path.join(__dirname, "frontend/images", old); try { if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath); } catch (_) {} }
+      next.photo = `candidates/${req.file.filename}`;
+    }
+    candidateExtra[id] = next;
     saveExtra();
-  }
-  res.json({ ok: true, message: "ลบข้อมูลเพิ่มเติมแล้ว (Smart Contract ไม่สามารถลบได้)" });
+    res.json({ ok: true, message: "บันทึกการแก้ไขแล้ว" });
+  } catch (err) { removeUploaded(req); res.status(500).json({ error: err.message }); }
 });
 app.get("/api/blockchain", async (req, res) => {
   if (!provider || !contract) return res.json({ blocks: [], contractAddress: null, isValid: false });
@@ -250,7 +339,10 @@ function getMockCandidates() {
   ];
 }
 app.listen(PORT, async () => {
+  loadSettings();
   await initBlockchain();
+  setInterval(() => { checkAutoClose().catch(() => {}); }, 15000);   // ตรวจเวลาปิดรับคะแนนทุก 15 วินาที
+  if (closingTime) console.log("⏰ เวลาปิดรับคะแนนที่ตั้งไว้:", closingTime);
   console.log("\n" + "═".repeat(50));
   console.log("  🗳️  UBU Election System 2570 (Blockchain)");
   console.log("  " + "─".repeat(46));

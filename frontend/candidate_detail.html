@@ -31,6 +31,8 @@ async function loadDetail(){
     const k=UBU_UI.teamKit(c);
     const col=k.a, deep=k.d, pastel=k.p, light=UBU_UI.mixW(pastel,.55);
     const imgTag=UBU_UI.photoImg(c);
+    const bio=(c.biography||'').trim();
+    const bioHtml=bio?`<div style="background:#fff;border:1px solid var(--g200);border-radius:var(--r-lg);padding:20px 22px;margin-bottom:36px"><div style="font-size:13px;font-weight:700;color:${deep};margin-bottom:8px">เกี่ยวกับทีม</div><p style="font-size:15px;color:var(--g600);line-height:1.8;white-space:pre-line;margin:0">${UBU_UI.esc(bio)}</p></div>`:'';
     const scoreHtml=(c.voteCount==null)
       ? `<div style="font-size:14px;font-weight:700;color:var(--g500);text-align:right">ประกาศหลังปิดรับคะแนน</div>`
       : `<div style="font-size:22px;font-weight:800;color:${deep}">${c.voteCount} คะแนน</div>`;
@@ -46,9 +48,9 @@ async function loadDetail(){
           <div style="background:#fff;border:1px solid var(--g200);border-radius:var(--r-xl);padding:24px">
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
               <div style="width:48px;height:48px;border-radius:12px;background:${col};display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff">${c.id}</div>
-              <div><div style="font-size:11px;font-weight:700;color:${deep};text-transform:uppercase">${c.party}</div><div style="font-size:20px;font-weight:800;color:var(--navy)">${c.name}</div></div>
+              <div><div style="font-size:11px;font-weight:700;color:${deep};text-transform:uppercase">${UBU_UI.esc(c.party)}</div><div style="font-size:20px;font-weight:800;color:var(--navy)">${UBU_UI.esc(c.name)}</div></div>
             </div>
-            <p style="font-size:14px;color:var(--g500);line-height:1.6;font-style:italic;border-left:3px solid ${col};padding-left:12px;margin-bottom:20px">"${c.slogan}"</p>
+            <p style="font-size:14px;color:var(--g500);line-height:1.6;font-style:italic;border-left:3px solid ${col};padding-left:12px;margin-bottom:20px">"${UBU_UI.esc(c.slogan)}"</p>
             <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--g50);border-radius:var(--r-md)">
               <div style="font-size:13px;color:var(--g500)">คะแนนที่ได้รับ</div>
               ${scoreHtml}
@@ -56,16 +58,17 @@ async function loadDetail(){
           </div>
         </div>
         <div>
-          <h2 style="font-size:28px;font-weight:800;color:var(--navy);margin-bottom:8px">นโยบายของ${c.name}</h2>
+          <h2 style="font-size:28px;font-weight:800;color:var(--navy);margin-bottom:8px">นโยบายของ${UBU_UI.esc(c.name)}</h2>
           <p style="color:var(--g500);margin-bottom:28px">นโยบายและแผนการพัฒนามหาวิทยาลัยของเรา</p>
           <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:36px">
             ${policies.map((p,i)=>`
             <div style="display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--g200);border-radius:var(--r-lg);padding:18px 20px;transition:all .2s" onmouseover="this.style.borderColor='${col}';this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.borderColor='var(--g200)';this.style.boxShadow='none'">
               <div style="width:36px;height:36px;border-radius:10px;background:${pastel};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:${deep};flex-shrink:0">${i+1}</div>
-              <div style="font-size:15px;font-weight:600;color:var(--navy)">${p}</div>
+              <div style="font-size:15px;font-weight:600;color:var(--navy)">${UBU_UI.esc(p)}</div>
             </div>`).join('')}
           </div>
-          <a href="/vote.html" class="btn btn-primary btn-lg" style="padding:16px 40px;font-size:16px">🗳️ ลงคะแนนให้ ${c.name}</a>
+          ${bioHtml}
+          <a href="/vote.html" class="btn btn-primary btn-lg" style="padding:16px 40px;font-size:16px">🗳️ ลงคะแนนให้ ${UBU_UI.esc(c.name)}</a>
         </div>
       </div>
     </div>`;

@@ -9,6 +9,19 @@
 .policy-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
 .policy-row input{flex:1}
 .policy-row button{width:36px;height:36px;border-radius:8px;background:#fee2e2;color:#dc2626;border:none;cursor:pointer;font-size:18px;flex-shrink:0}
+.adm-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--g100)}
+.adm-row:last-child{border-bottom:none}
+.adm-row.hidden-row{opacity:.55}
+.adm-name{font-weight:800;color:var(--navy)}
+.adm-sub{font-size:12px;color:var(--g500);margin-top:2px}
+.adm-bar{height:8px;background:var(--g100);border-radius:4px;margin-top:8px;overflow:hidden}
+.adm-bar div{height:100%;border-radius:4px;transition:width .6s}
+.adm-ibtn{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--g200);background:#fff;color:var(--navy);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0}
+.adm-ibtn:hover:not(:disabled){background:var(--g50)}
+.adm-ibtn:disabled{opacity:.4;cursor:not-allowed}
+.adm-chip{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--g100);color:var(--g600);margin-left:8px;vertical-align:middle}
+#edit-banner{align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#1e3a8a;line-height:1.6}
+@media (max-width:640px){.adm-row{flex-wrap:wrap}.adm-row>div:nth-child(2){flex:1 1 calc(100% - 72px) !important}.adm-row .adm-ibtn{flex:1 1 calc(50% - 7px)}}
 </style>
 </head>
 <body data-page="admin">
@@ -47,32 +60,34 @@
     <!-- Stats -->
     <h2 style="font-size:28px;font-weight:900;color:var(--navy);margin-bottom:24px">ภาพรวมการเลือกตั้ง</h2>
     <div class="r-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:32px">
-      <div class="stat-card" style="border-left:4px solid var(--green)"><div class="stat-label">ลงคะแนนแล้ว</div><div class="stat-value" style="color:var(--green)" id="admin-total-votes">0</div></div>
-      <div class="stat-card" style="border-left:4px solid var(--blue)"><div class="stat-label">สถานะการเลือกตั้ง</div><div class="stat-value" style="font-size:18px" id="admin-status">Loading...</div></div>
-      <div class="stat-card" style="border-left:4px solid var(--purple)"><div class="stat-label">Smart Contract</div><div class="stat-value" style="color:var(--purple);font-size:13px;word-break:break-all" id="admin-contract">Loading...</div></div>
+      <div class="stat-card" style="border-left:4px solid #60a5fa"><div class="stat-label" style="color:#000">ลงคะแนนแล้ว</div><div class="stat-value" style="color:#000" id="admin-total-votes">0</div></div>
+      <div class="stat-card" style="border-left:4px solid #60a5fa"><div class="stat-label" style="color:#000">สถานะการเลือกตั้ง</div><div class="stat-value" style="font-size:22px;color:#000" id="admin-status">กำลังโหลด...</div></div>
+      <div class="stat-card" style="border-left:4px solid #60a5fa"><div class="stat-label" style="color:#000">ที่อยู่ระบบบันทึกคะแนน (Contract)</div><div class="stat-value" style="color:#000;font-size:13px;word-break:break-all" id="admin-contract">กำลังโหลด...</div></div>
     </div>
 
     <!-- กำหนดเวลาปิดรับคะแนน -->
     <div class="stat-card" style="margin-bottom:24px">
       <h3 style="font-size:18px;margin-bottom:16px">⏰ กำหนดเวลาปิดรับคะแนน</h3>
-      <p style="font-size:13px;color:var(--g500);margin-bottom:14px">ตั้งวันเวลาที่ต้องการให้แสดงนับถอยหลังบนหน้าเว็บ (ไม่ได้ปิดรับคะแนนอัตโนมัติ ยังต้องกดปุ่ม "เปิด/ปิดการเลือกตั้ง" เองตามเวลาจริง)</p>
+      <p style="font-size:13px;color:var(--g500);margin-bottom:14px;line-height:1.7">ตั้งวันเวลาที่ต้องการปิดรับคะแนน เมื่อถึงเวลา <b>ระบบจะปิดการเลือกตั้งให้อัตโนมัติ</b> (ตรวจทุก 15 วินาที) และผู้ใช้จะโหวตไม่ได้อีก หากกดเปิดการเลือกตั้งอีกครั้ง เวลาที่ตั้งไว้จะถูกล้าง<br><span style="color:var(--g400)">หมายเหตุ: ถ้าใช้ Render แผนฟรี เวลาที่ตั้งอาจหายเมื่อเซิร์ฟเวอร์รีสตาร์ท ให้ตั้งตัวแปร CLOSING_TIME ใน Environment เพิ่มด้วยเพื่อความแน่นอน</span></p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <input type="datetime-local" id="closing-time-input" class="input" style="max-width:260px">
         <button onclick="setClosingTime()" class="btn btn-primary btn-sm">บันทึกเวลา</button>
-        <button onclick="clearClosingTime()" class="btn btn-ghost btn-sm">ล้างเวลา (ไม่แสดงนับถอยหลัง)</button>
+        <button onclick="clearClosingTime()" class="btn btn-ghost btn-sm">ล้างเวลา (ไม่ปิดอัตโนมัติ)</button>
       </div>
       <div id="closing-time-status" style="margin-top:10px;font-size:13px;color:var(--g500)"></div>
     </div>
 
     <!-- ผลคะแนน -->
     <div class="stat-card" style="margin-bottom:24px">
-      <h3 style="font-size:18px;margin-bottom:20px">ผลคะแนนปัจจุบัน</h3>
-      <div id="admin-results">Loading...</div>
+      <h3 style="font-size:18px;margin-bottom:6px">ผู้สมัครและคะแนน</h3>
+      <p id="hide-note" style="font-size:13px;color:var(--g500);margin-bottom:14px"></p>
+      <div id="admin-results">กำลังโหลด...</div>
     </div>
 
     <!-- เพิ่มผู้สมัคร -->
-    <div class="stat-card">
-      <h3 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:24px">➕ เพิ่มผู้สมัครใหม่</h3>
+    <div class="stat-card" id="candidate-form">
+      <h3 id="form-title" style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:24px">➕ เพิ่มผู้สมัครใหม่</h3>
+      <div id="edit-banner" style="display:none"><span>กำลังแก้ไขข้อมูลเสริมของผู้สมัคร (สี อีโมจิ รูป นโยบาย ประวัติ) · <b>ชื่อทีม พรรค และสโลแกน แก้ไม่ได้</b> เพราะบันทึกอยู่บน Blockchain</span><button type="button" class="adm-ibtn" onclick="cancelEdit()">ยกเลิกการแก้ไข</button></div>
 
       <div class="r-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
         <div>
@@ -113,8 +128,8 @@
           </div>
           <div id="upload-placeholder">
             <div style="font-size:32px;margin-bottom:8px">📷</div>
-            <div style="font-size:14px;color:var(--g500)">คลิกเพื่ออัพโหลดรูป</div>
-            <div style="font-size:12px;color:var(--g400);margin-top:4px">PNG, JPG ขนาดไม่เกิน 5MB</div>
+            <div style="font-size:14px;color:var(--g500)">คลิกเพื่ออัพโหลดรูป (ไม่เลือก = ใช้รูปเดิม)</div>
+            <div style="font-size:12px;color:var(--g400);margin-top:4px;line-height:1.6">แนะนำรูปครึ่งตัวแนวตั้ง (สัดส่วนประมาณ 3:4) ตัวคนอยู่กลางภาพ · PNG, JPG ไม่เกิน 5MB</div>
           </div>
         </div>
       </div>
@@ -129,26 +144,19 @@
         <div id="policies-container">
           <div class="policy-row">
             <input type="text" class="input policy-input" placeholder="นโยบายที่ 1">
-            <button onclick="removePolicy(this)" title="ลบ">✕</button>
+            <button type="button" onclick="removePolicy(this)" title="ลบ">✕</button>
           </div>
         </div>
-        <button onclick="addPolicyRow()" class="btn btn-ghost btn-sm" style="margin-top:8px">+ เพิ่มนโยบาย</button>
+        <button type="button" onclick="addPolicyRow()" class="btn btn-ghost btn-sm" style="margin-top:8px">+ เพิ่มนโยบาย</button>
       </div>
 
       <!-- Preview card -->
       <div style="background:var(--g50);border:1px solid var(--g200);border-radius:var(--r-lg);padding:16px;margin-bottom:20px">
         <div style="font-size:12px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">ตัวอย่างการแสดงผล</div>
-        <div id="preview-card" style="background:#fff;border-radius:var(--r-lg);overflow:hidden;max-width:260px;border:1px solid var(--g200)">
-          <div id="preview-header" style="height:80px;background:#2563eb22;display:flex;align-items:center;justify-content:center;font-size:40px">🗳️</div>
-          <div style="padding:14px">
-            <div id="preview-num" style="font-size:28px;font-weight:900;color:#2563eb">-</div>
-            <div id="preview-name" style="font-size:16px;font-weight:800;color:var(--navy)">ชื่อทีม</div>
-            <div id="preview-party" style="font-size:12px;color:var(--g500)">ชื่อพรรค</div>
-          </div>
-        </div>
+        <div id="preview-card"></div>
       </div>
 
-      <button onclick="submitCandidate()" class="btn btn-primary" style="padding:14px 32px;font-size:15px" id="submit-btn">➕ เพิ่มผู้สมัคร</button>
+      <button type="button" onclick="submitCandidate()" class="btn btn-primary" style="padding:14px 32px;font-size:15px" id="submit-btn">➕ เพิ่มผู้สมัคร</button>
     </div>
 
   </div></div>
@@ -157,6 +165,9 @@
 <div id="toast-container" class="toast-wrap"></div>
 <script src="/js/main.js"></script>
 <script>
+const esc = UBU_UI.esc;
+let ADMIN_CANDS = [], ADMIN_STATS = {}, EDIT_ID = null, PHOTO_DATA = null;
+
 // Login
 document.getElementById('admin-login-form').addEventListener('submit', async(e)=>{
   e.preventDefault();
@@ -172,82 +183,98 @@ document.getElementById('admin-login-form').addEventListener('submit', async(e)=
 
 async function loadAdminData(){
   try{
-    const{totalVotes,isOpen,closingTime}=await api('/api/stats');
+    const st=await api('/api/stats'); ADMIN_STATS=st;
+    const{totalVotes,isOpen,closingTime}=st;
     document.getElementById('admin-total-votes').textContent=totalVotes;
     document.getElementById('admin-status').textContent=isOpen?'🟢 เปิดอยู่':'🔴 ปิดแล้ว';
-    document.getElementById('admin-status').style.color=isOpen?'var(--green)':'var(--red)';
-    const statusEl = document.getElementById('closing-time-status');
-    if (closingTime) {
-      const d = new Date(closingTime);
+    const statusEl=document.getElementById('closing-time-status');
+    if(closingTime){
+      const d=new Date(closingTime), pad=n=>String(n).padStart(2,'0');
       // แปลงเป็นรูปแบบที่ <input type="datetime-local"> ใช้ได้ (YYYY-MM-DDTHH:mm ตามเวลาเครื่อง)
-      const pad = n => String(n).padStart(2,'0');
-      document.getElementById('closing-time-input').value =
-        `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-      if (statusEl) statusEl.textContent = `ตั้งไว้: ${d.toLocaleString('th-TH')}`;
-    } else if (statusEl) {
-      statusEl.textContent = 'ยังไม่ได้ตั้งเวลา (หน้าเว็บจะไม่แสดงนับถอยหลัง)';
+      document.getElementById('closing-time-input').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      const passed=d.getTime()<=Date.now();
+      statusEl.textContent=`ตั้งไว้: ${d.toLocaleString('th-TH')}`+(passed?(isOpen?' · เลยเวลาแล้ว ระบบกำลังปิดรับคะแนนให้':' · ปิดรับคะแนนแล้ว'):' · ระบบจะปิดรับคะแนนให้อัตโนมัติ');
+    }else{
+      document.getElementById('closing-time-input').value='';
+      statusEl.textContent='ยังไม่ได้ตั้งเวลา (ระบบจะไม่ปิดรับคะแนนอัตโนมัติ และหน้าเว็บจะไม่แสดงนับถอยหลัง)';
     }
     const{contractAddress}=await api('/api/blockchain');
     document.getElementById('admin-contract').textContent=contractAddress||'Not deployed';
-    const{candidates}=await api('/api/candidates');
-    const total=Math.max(totalVotes,1);
-    document.getElementById('admin-results').innerHTML=candidates.map(c=>`
-      <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
-        <img src="/images/${c.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">
-        <div style="flex:1">
-          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-            <span style="font-weight:700">${c.emoji} ${c.name}</span>
-            <span style="color:${c.color};font-weight:700">${c.voteCount} คะแนน</span>
+    const{candidates}=await api('/api/candidates?all=1');
+    ADMIN_CANDS=candidates;
+    const canHide=totalVotes===0;
+    document.getElementById('hide-note').textContent=canHide
+      ?'ปุ่ม "ซ่อน" ทำให้ผู้สมัครหายจากทุกหน้าและโหวตให้ไม่ได้ ใช้ได้ตอนยังไม่มีคนโหวตเท่านั้น'
+      :`มีผู้ลงคะแนนแล้ว ${totalVotes} คน จึงซ่อน/แสดงผู้สมัครไม่ได้แล้ว (เพื่อความยุติธรรม)`;
+    document.getElementById('admin-results').innerHTML=candidates.map(c=>{
+      const k=UBU_UI.teamKit(c), hasScore=c.voteCount!=null;
+      const pct=(hasScore&&totalVotes)?Math.round(c.voteCount/totalVotes*100):0;
+      return `<div class="adm-row${c.hidden?' hidden-row':''}">
+        ${UBU_UI.avatar(c,52,false)}
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline">
+            <span class="adm-name">${c.id}. ${esc(c.emoji)} ${esc(c.name)}${c.hidden?'<span class="adm-chip">ซ่อนอยู่</span>':''}</span>
+            <span style="font-weight:800;font-size:${hasScore?'16px':'13px'};color:${hasScore?k.d:'var(--g500)'}">${hasScore?c.voteCount+' คะแนน':'ซ่อนไว้จนกว่าจะปิดรับ'}</span>
           </div>
-          <div style="height:8px;background:var(--g100);border-radius:4px">
-            <div style="height:100%;width:${Math.round(c.voteCount/total*100)}%;background:${c.color};border-radius:4px"></div>
-          </div>
+          <div class="adm-sub">${esc(c.party)}</div>
+          ${hasScore?`<div class="adm-bar"><div style="width:${pct}%;background:${k.a}"></div></div>`:''}
         </div>
-        <button onclick="deleteCandidate(${c.id})" style="width:32px;height:32px;border-radius:8px;background:#fee2e2;color:#dc2626;border:none;cursor:pointer;font-size:16px;flex-shrink:0" title="ลบ">✕</button>
-      </div>`).join('');
+        <button class="adm-ibtn" onclick="editCandidate(${c.id})">แก้ไข</button>
+        <button class="adm-ibtn" onclick="toggleHide(${c.id},${!c.hidden})" ${canHide?'':'disabled title="มีผู้ลงคะแนนแล้ว ซ่อน/แสดงผู้สมัครไม่ได้"'}>${c.hidden?'แสดงอีกครั้ง':'ซ่อน'}</button>
+      </div>`;
+    }).join('');
+    updatePreview();
   }catch(e){console.error(e);}
 }
 
 async function toggleElection(){
-  try{const{isOpen}=await api('/api/admin/toggle',{method:'POST'});Toast.success(isOpen?'เปิดการเลือกตั้งแล้ว':'ปิดการเลือกตั้งแล้ว');loadAdminData();}
-  catch(err){Toast.error(err.message);}
+  try{
+    const d=await api('/api/admin/toggle',{method:'POST'});
+    Toast.success(d.isOpen?('เปิดการเลือกตั้งแล้ว'+(d.closingTimeCleared?' (ล้างเวลาปิดรับคะแนนเดิมแล้ว)':'')):'ปิดการเลือกตั้งแล้ว');
+    loadAdminData();
+  }catch(err){Toast.error(err.message);}
 }
 
 async function setClosingTime(){
-  const val = document.getElementById('closing-time-input').value; // "YYYY-MM-DDTHH:mm" ตามเวลาเครื่อง
-  if (!val) { Toast.error('กรุณาเลือกวันเวลาก่อน'); return; }
+  const val=document.getElementById('closing-time-input').value; // "YYYY-MM-DDTHH:mm" ตามเวลาเครื่อง
+  if(!val){Toast.error('กรุณาเลือกวันเวลาก่อน');return;}
+  const t=new Date(val);
+  if(t.getTime()<=Date.now()&&ADMIN_STATS.isOpen!==false){
+    if(!confirm('เวลาที่เลือกผ่านไปแล้ว\nถ้าบันทึก ระบบจะปิดรับคะแนนทันที\n\nต้องการดำเนินการต่อไหม?'))return;
+  }
   try{
-    const closingTime = new Date(val).toISOString(); // แปลงเป็น ISO string (UTC) ก่อนส่งไปเก็บที่ Server
-    await api('/api/admin/set-closing-time',{method:'POST',body:JSON.stringify({closingTime})});
-    Toast.success('บันทึกเวลาปิดรับคะแนนแล้ว');
-    loadAdminData();
+    const d=await api('/api/admin/set-closing-time',{method:'POST',body:JSON.stringify({closingTime:t.toISOString()})});
+    Toast.success(d.closesNow?'บันทึกเวลาแล้ว และกำลังปิดรับคะแนน':'บันทึกเวลาปิดรับคะแนนแล้ว (ระบบจะปิดให้อัตโนมัติ)');
+    setTimeout(loadAdminData,d.closesNow?3000:0);
   }catch(err){Toast.error(err.message);}
 }
 
 async function clearClosingTime(){
   try{
     await api('/api/admin/set-closing-time',{method:'POST',body:JSON.stringify({closingTime:null})});
-    document.getElementById('closing-time-input').value = '';
-    Toast.success('ล้างเวลาปิดรับคะแนนแล้ว');
+    document.getElementById('closing-time-input').value='';
+    Toast.success('ล้างเวลาปิดรับคะแนนแล้ว (ระบบจะไม่ปิดอัตโนมัติ)');
     loadAdminData();
   }catch(err){Toast.error(err.message);}
 }
 
-async function deleteCandidate(id){
-  if(!confirm('ต้องการลบข้อมูลเพิ่มเติมของผู้สมัครนี้มั้ย?\n(Smart Contract ไม่สามารถลบได้)'))return;
+// ซ่อน/แสดงผู้สมัคร (Smart Contract ลบผู้สมัครไม่ได้ จึงใช้ซ่อนแทน)
+async function toggleHide(id,hide){
+  if(hide&&!confirm('ซ่อนผู้สมัครคนนี้ใช่ไหม?\n\n• หายจากทุกหน้าของเว็บ และโหวตให้ไม่ได้\n• ใช้ได้เฉพาะตอนยังไม่มีคนโหวต\n• ชื่อยังคงอยู่บน Blockchain (ลบจริงไม่ได้)'))return;
   try{
-    await fetch(`/api/admin/delete-candidate/${id}`,{method:'DELETE',credentials:'same-origin'});
-    Toast.success('ลบแล้วครับ');
+    const d=await api(`/api/admin/hide-candidate/${id}`,{method:'POST',body:JSON.stringify({hidden:hide})});
+    Toast.success(d.message);
     loadAdminData();
   }catch(err){Toast.error(err.message);}
 }
 
 // Policies
-function addPolicyRow(){
+function addPolicyRow(value){
   const count=document.querySelectorAll('.policy-input').length+1;
   const div=document.createElement('div');
   div.className='policy-row';
-  div.innerHTML=`<input type="text" class="input policy-input" placeholder="นโยบายที่ ${count}"><button onclick="removePolicy(this)" title="ลบ">✕</button>`;
+  div.innerHTML=`<input type="text" class="input policy-input" placeholder="นโยบายที่ ${count}"><button type="button" onclick="removePolicy(this)" title="ลบ">✕</button>`;
+  if(typeof value==='string')div.querySelector('input').value=value;
   document.getElementById('policies-container').appendChild(div);
 }
 function removePolicy(btn){
@@ -261,9 +288,11 @@ function previewPhoto(input){
   if(input.files&&input.files[0]){
     const reader=new FileReader();
     reader.onload=e=>{
-      document.getElementById('preview-img').src=e.target.result;
+      PHOTO_DATA=e.target.result;
+      document.getElementById('preview-img').src=PHOTO_DATA;
       document.getElementById('upload-preview').style.display='block';
       document.getElementById('upload-placeholder').style.display='none';
+      updatePreview();
     };
     reader.readAsDataURL(input.files[0]);
   }
@@ -274,65 +303,113 @@ document.getElementById('add-color').addEventListener('input',function(){
   document.getElementById('add-color-hex').value=this.value;
   updatePreview();
 });
-
-// Live preview
-['add-name','add-party','add-emoji','add-color-hex'].forEach(id=>{
+['add-name','add-party','add-slogan','add-emoji','add-color-hex'].forEach(id=>{
   const el=document.getElementById(id);
   if(el)el.addEventListener('input',updatePreview);
 });
 
+// ตัวอย่างการ์ดจริง (ใช้คลาสเดียวกับการ์ดบนหน้าเว็บ)
 function updatePreview(){
   const name=document.getElementById('add-name').value||'ชื่อทีม';
   const party=document.getElementById('add-party').value||'ชื่อพรรค';
+  const slogan=document.getElementById('add-slogan').value||'สโลแกนของทีม';
   const emoji=document.getElementById('add-emoji').value||'🗳️';
   const color=document.getElementById('add-color').value||'#2563eb';
-  document.getElementById('preview-name').textContent=name;
-  document.getElementById('preview-party').textContent=party;
-  document.getElementById('preview-num').textContent=emoji;
-  document.getElementById('preview-num').style.color=color;
-  document.getElementById('preview-header').style.background=color+'22';
-  document.getElementById('preview-header').textContent=emoji;
+  const cur=EDIT_ID!==null?ADMIN_CANDS.find(x=>x.id===EDIT_ID):null;
+  const id=EDIT_ID!==null?EDIT_ID:ADMIN_CANDS.length+1;
+  const kit=UBU_UI.teamKit({id,color});
+  let photo=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:64px">${esc(emoji)}</div>`;
+  if(PHOTO_DATA)photo=`<img src="${PHOTO_DATA}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top">`;
+  else if(cur)photo=UBU_UI.photoImg({...cur,emoji});
+  document.getElementById('preview-card').innerHTML=`
+    <div class="cand-card" style="${UBU_UI.kitVars(kit)};cursor:default;max-width:280px">
+      <div class="cand-photo">${photo}<div class="cand-badge">หมายเลข ${id}</div></div>
+      <div class="cand-info">
+        <div class="cand-name">${esc(name)}</div>
+        <div><span class="cand-party">${esc(party)}</span></div>
+        <p class="cand-slogan">"${esc(slogan)}"</p>
+        <button class="cand-btn" type="button" tabindex="-1">ดูรายละเอียด</button>
+      </div>
+    </div>`;
 }
 
-// Submit
+// ── เพิ่ม / แก้ไขผู้สมัคร ──
+function setFormMode(editing,cand){
+  EDIT_ID=editing?cand.id:null;
+  document.getElementById('form-title').textContent=editing?`✏️ แก้ไขผู้สมัครหมายเลข ${cand.id}`:'➕ เพิ่มผู้สมัครใหม่';
+  document.getElementById('submit-btn').textContent=editing?'💾 บันทึกการแก้ไข':'➕ เพิ่มผู้สมัคร';
+  document.getElementById('edit-banner').style.display=editing?'flex':'none';
+  ['add-name','add-party','add-slogan'].forEach(id=>{document.getElementById(id).disabled=editing;});
+}
+function resetForm(){
+  setFormMode(false);
+  ['add-name','add-party','add-slogan','add-biography','add-emoji'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('add-color').value='#2563eb';
+  document.getElementById('add-color-hex').value='#2563eb';
+  document.getElementById('add-photo').value='';
+  PHOTO_DATA=null;
+  document.getElementById('upload-preview').style.display='none';
+  document.getElementById('upload-placeholder').style.display='block';
+  document.getElementById('policies-container').innerHTML='<div class="policy-row"><input type="text" class="input policy-input" placeholder="นโยบายที่ 1"><button type="button" onclick="removePolicy(this)" title="ลบ">✕</button></div>';
+  updatePreview();
+}
+function cancelEdit(){resetForm();}
+function editCandidate(id){
+  const c=ADMIN_CANDS.find(x=>x.id===id); if(!c)return;
+  resetForm(); setFormMode(true,c);
+  document.getElementById('add-name').value=c.name;
+  document.getElementById('add-party').value=c.party;
+  document.getElementById('add-slogan').value=c.slogan;
+  document.getElementById('add-emoji').value=c.emoji||'';
+  const kit=UBU_UI.teamKit(c);
+  document.getElementById('add-color').value=kit.a;
+  document.getElementById('add-color-hex').value=kit.a;
+  document.getElementById('add-biography').value=c.biography||'';
+  const pol=(c.policies&&c.policies.length)?c.policies:UBU_UI.policiesOf(c);
+  document.getElementById('policies-container').innerHTML='';
+  (pol.length?pol:['']).forEach(p=>addPolicyRow(p));
+  if(c.photo){document.getElementById('preview-img').src=UBU_UI.hasCut(c)?`/images/cutout/candidate-${c.id}.png`:`/images/${c.photo}`;document.getElementById('upload-preview').style.display='block';document.getElementById('upload-placeholder').style.display='none';}
+  updatePreview();
+  document.getElementById('candidate-form').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 async function submitCandidate(){
+  const editing=EDIT_ID!==null;
   const name=document.getElementById('add-name').value.trim();
   const party=document.getElementById('add-party').value.trim();
   const slogan=document.getElementById('add-slogan').value.trim();
-  if(!name||!party||!slogan){Toast.error('กรุณากรอกชื่อทีม พรรค และ Slogan');return;}
-
+  if(!editing&&(!name||!party||!slogan)){Toast.error('กรุณากรอกชื่อทีม พรรค และ Slogan');return;}
   const policies=[...document.querySelectorAll('.policy-input')].map(i=>i.value.trim()).filter(Boolean);
-  const formData=new FormData();
-  formData.append('name',name);
-  formData.append('party',party);
-  formData.append('slogan',slogan);
-  formData.append('emoji',document.getElementById('add-emoji').value||'🗳️');
-  formData.append('color',document.getElementById('add-color').value||'#2563eb');
-  formData.append('biography',document.getElementById('add-biography').value||'');
-  formData.append('policies',JSON.stringify(policies));
   const photoFile=document.getElementById('add-photo').files[0];
-  if(photoFile)formData.append('photo',photoFile);
-
+  const build=(late)=>{
+    const fd=new FormData();
+    if(!editing){fd.append('name',name);fd.append('party',party);fd.append('slogan',slogan);}
+    fd.append('emoji',document.getElementById('add-emoji').value||'🗳️');
+    fd.append('color',document.getElementById('add-color').value||'#2563eb');
+    fd.append('biography',document.getElementById('add-biography').value||'');
+    fd.append('policies',JSON.stringify(policies));
+    if(photoFile)fd.append('photo',photoFile);
+    if(late)fd.append('confirmLate','true');
+    return fd;
+  };
+  const send=(late)=>fetch(editing?`/api/admin/update-candidate/${EDIT_ID}`:'/api/admin/add-candidate',{method:editing?'PUT':'POST',body:build(late),credentials:'same-origin'});
+  const warnLate=(n)=>confirm(`มีผู้ลงคะแนนแล้ว ${n} คน\nการเพิ่มผู้สมัครตอนนี้ไม่ยุติธรรมกับคนที่โหวตไปแล้ว และลบออกไม่ได้\n\nต้องการเพิ่มต่อไหม?`);
+  let late=false;
+  if(!editing&&(ADMIN_STATS.totalVotes||0)>0){if(!warnLate(ADMIN_STATS.totalVotes))return;late=true;}
   const btn=document.getElementById('submit-btn');
   btn.disabled=true; btn.textContent='กำลังบันทึก...';
   try{
-    const res=await fetch('/api/admin/add-candidate',{method:'POST',body:formData,credentials:'same-origin'});
-    const d=await res.json();
+    let res=await send(late), d=await res.json();
+    if(res.status===409&&d.needConfirm){                       // ข้อมูลฝั่งหน้าเว็บเก่า แต่เซิร์ฟเวอร์เห็นว่ามีคนโหวตแล้ว
+      if(!warnLate(d.totalVotes)){btn.disabled=false;btn.textContent=editing?'💾 บันทึกการแก้ไข':'➕ เพิ่มผู้สมัคร';return;}
+      res=await send(true); d=await res.json();
+    }
     if(!res.ok)throw new Error(d.error);
     Toast.success(d.message);
-    // Reset form
-    ['add-name','add-party','add-slogan','add-biography'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('add-emoji').value='';
-    document.getElementById('add-color').value='#2563eb';
-    document.getElementById('add-color-hex').value='#2563eb';
-    document.getElementById('add-photo').value='';
-    document.getElementById('upload-preview').style.display='none';
-    document.getElementById('upload-placeholder').style.display='block';
-    document.getElementById('policies-container').innerHTML='<div class="policy-row"><input type="text" class="input policy-input" placeholder="นโยบายที่ 1"><button onclick="removePolicy(this)" title="ลบ">✕</button></div>';
-    updatePreview();
+    resetForm();
     loadAdminData();
   }catch(err){Toast.error(err.message);}
-  btn.disabled=false; btn.textContent='➕ เพิ่มผู้สมัคร';
+  btn.disabled=false; btn.textContent=EDIT_ID!==null?'💾 บันทึกการแก้ไข':'➕ เพิ่มผู้สมัคร';
 }
 </script>
 </body></html>

@@ -41,25 +41,33 @@ const UBU_UI = (() => {
     return '#' + [f(n >> 16 & 255), f(n >> 8 & 255), f(n & 255)].map(v => v.toString(16).padStart(2, '0')).join('');
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+  function shade(hex, p) {                         // ผสมกับสีดำ ให้เข้มขึ้น (ใช้กับสีตัวหนังสือของสีที่ Admin เลือกเอง)
+    const n = parseInt(String(hex).slice(1), 16), f = v => Math.round(v * (1 - p));
+    return '#' + [f(n >> 16 & 255), f(n >> 8 & 255), f(n & 255)].map(v => v.toString(16).padStart(2, '0')).join('');
+  }
   function teamKit(c) {
     const k = KIT[Number(c && c.id) - 1];
-    if (k) return k;
-    const col = /^#[0-9a-fA-F]{6}$/.test((c && c.color) || '') ? c.color : '#2563eb';   // ผู้สมัครที่เพิ่มใหม่ผ่านหน้า Admin
-    return { p: mixW(col, .8), a: col, d: col };
+    const col = /^#[0-9a-fA-F]{6}$/.test((c && c.color) || '') ? c.color.toLowerCase() : null;
+    if (k && (!col || col === k.a)) return k;                                  // ทีม 1-4 ที่ยังใช้สีเดิม
+    const base = col || '#2563eb';                                             // ผู้สมัครที่เพิ่มใหม่ หรือที่ Admin เปลี่ยนสีเอง
+    return { p: mixW(base, .8), a: base, d: shade(base, .22) };
   }
   function kitVars(k) { return `--tp:${k.p};--ta:${k.a};--td:${k.d};--tl:${mixW(k.p, .55)}`; }
-  function hasCut(c) { return CUT.includes(Number(c && c.id)); }
+  function hasCut(c) { return CUT.includes(Number(c && c.id)) && (!c.photo || /^candidate-\d+\.png$/.test(c.photo)); }   // ใช้รูปตัดพื้นหลังเมื่อยังไม่ได้อัปโหลดรูปใหม่แทน
   /* รูปในกรอบสี่เหลี่ยม: รูปตัดพื้นหลังกว้างเต็มกรอบ ตัวคนอยู่กึ่งกลางชิดขอบล่าง / ผู้สมัครใหม่ใช้รูปเดิมเต็มกรอบ */
   function photoImg(c) {
     if (hasCut(c)) return `<img src="/images/cutout/candidate-${c.id}.png" alt="${esc(c.name)}" style="position:absolute;left:0;bottom:0;width:100%;height:auto;display:block" onerror="this.style.display='none'">`;
-    return c && c.photo ? `<img src="/images/${esc(c.photo)}" alt="${esc(c.name)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top" onerror="this.style.display='none'">` : '';
+    // ผู้สมัครที่ไม่มีรูป (หรือรูปโหลดไม่ได้): แสดงอีโมจิประจำทีมไว้ด้านหลัง รูปที่โหลดได้จะบังทับเต็มกรอบ
+    const ph = `<div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:72px">${esc((c && c.emoji) || '🗳️')}</div>`;
+    return ph + (c && c.photo ? `<img src="/images/${esc(c.photo)}" alt="${esc(c.name)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top" onerror="this.style.display='none'">` : '');
   }
   /* รูปวงกลมบนพื้นอ่อนของทีม */
   function avatar(c, size, ring) {
     const k = teamKit(c);
+    const ph = `<div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * .5)}px">${esc((c && c.emoji) || '🗳️')}</div>`;
     const img = hasCut(c)
-      ? `<img src="/images/cutout/candidate-${c.id}.png" alt="" style="position:absolute;left:0;bottom:0;width:100%;height:auto">`
-      : (c && c.photo ? `<img src="/images/${esc(c.photo)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top">` : '');
+      ? `<img src="/images/cutout/candidate-${c.id}.png" alt="" style="position:absolute;left:0;bottom:0;width:100%;height:auto" onerror="this.style.display='none'">`
+      : ph + (c && c.photo ? `<img src="/images/${esc(c.photo)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top" onerror="this.style.display='none'">` : '');
     return `<div style="position:relative;width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:radial-gradient(circle at 50% 36%,${mixW(k.p, .55)} 0%,${k.p} 74%);${ring ? `box-shadow:0 0 0 3px #fff,0 0 0 6px ${k.a}` : ''}">${img}</div>`;
   }
   const CROWN = '<svg width="34" height="26" viewBox="0 0 34 26" aria-hidden="true"><path d="M2 22 L5 6 L12 14 L17 2 L22 14 L29 6 L32 22 Z" fill="#f59e0b" stroke="#b45309" stroke-width="1.5" stroke-linejoin="round"/></svg>';
@@ -74,7 +82,7 @@ const UBU_UI = (() => {
     const fromServer = (c && Array.isArray(c.policies)) ? c.policies.filter(Boolean) : [];
     return fromServer.length ? fromServer : (DEFAULT_POLICIES[Number(c && c.id)] || []);
   }
-  return { teamKit, kitVars, mixW, esc, hasCut, photoImg, avatar, policiesOf, CROWN };
+  return { teamKit, kitVars, mixW, shade, esc, hasCut, photoImg, avatar, policiesOf, CROWN };
 })();
 /* ── Navbar ─────────────────────────────────────────────── */
 async function initNavbar() {
