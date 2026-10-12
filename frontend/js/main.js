@@ -26,6 +26,56 @@ async function api(url, opts={}) {
   if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
   return data;
 }
+/* ── ชุดสีและตัวช่วยกลาง (ใช้ร่วมกันทุกหน้า) ─────────────────
+   แต่ละทีมมี 3 เฉดเสมอ: p = พื้นอ่อน (พื้นหลังรูป, ป้ายพรรค), a = สีสด (ป้ายหมายเลข, แถบ), d = สีเข้ม (ตัวหนังสือ, ปุ่มตอนวางเมาส์) */
+const UBU_UI = (() => {
+  const KIT = [
+    { p:'#DCEBFF', a:'#2563eb', d:'#1d4ed8' },
+    { p:'#FFE9B8', a:'#f59e0b', d:'#b45309' },
+    { p:'#D3F5E3', a:'#10b981', d:'#047857' },
+    { p:'#E6DCFF', a:'#7c3aed', d:'#6d28d9' },
+  ];
+  const CUT = [1, 2, 3, 4];                       // ผู้สมัครที่มีรูปตัดพื้นหลังเตรียมไว้แล้ว (images/cutout/)
+  function mixW(hex, p) {
+    const n = parseInt(String(hex).slice(1), 16), f = v => Math.round(v + (255 - v) * p);
+    return '#' + [f(n >> 16 & 255), f(n >> 8 & 255), f(n & 255)].map(v => v.toString(16).padStart(2, '0')).join('');
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+  function teamKit(c) {
+    const k = KIT[Number(c && c.id) - 1];
+    if (k) return k;
+    const col = /^#[0-9a-fA-F]{6}$/.test((c && c.color) || '') ? c.color : '#2563eb';   // ผู้สมัครที่เพิ่มใหม่ผ่านหน้า Admin
+    return { p: mixW(col, .8), a: col, d: col };
+  }
+  function kitVars(k) { return `--tp:${k.p};--ta:${k.a};--td:${k.d};--tl:${mixW(k.p, .55)}`; }
+  function hasCut(c) { return CUT.includes(Number(c && c.id)); }
+  /* รูปในกรอบสี่เหลี่ยม: รูปตัดพื้นหลังกว้างเต็มกรอบ ตัวคนอยู่กึ่งกลางชิดขอบล่าง / ผู้สมัครใหม่ใช้รูปเดิมเต็มกรอบ */
+  function photoImg(c) {
+    if (hasCut(c)) return `<img src="/images/cutout/candidate-${c.id}.png" alt="${esc(c.name)}" style="position:absolute;left:0;bottom:0;width:100%;height:auto;display:block" onerror="this.style.display='none'">`;
+    return c && c.photo ? `<img src="/images/${esc(c.photo)}" alt="${esc(c.name)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top" onerror="this.style.display='none'">` : '';
+  }
+  /* รูปวงกลมบนพื้นอ่อนของทีม */
+  function avatar(c, size, ring) {
+    const k = teamKit(c);
+    const img = hasCut(c)
+      ? `<img src="/images/cutout/candidate-${c.id}.png" alt="" style="position:absolute;left:0;bottom:0;width:100%;height:auto">`
+      : (c && c.photo ? `<img src="/images/${esc(c.photo)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top">` : '');
+    return `<div style="position:relative;width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:radial-gradient(circle at 50% 36%,${mixW(k.p, .55)} 0%,${k.p} 74%);${ring ? `box-shadow:0 0 0 3px #fff,0 0 0 6px ${k.a}` : ''}">${img}</div>`;
+  }
+  const CROWN = '<svg width="34" height="26" viewBox="0 0 34 26" aria-hidden="true"><path d="M2 22 L5 6 L12 14 L17 2 L22 14 L29 6 L32 22 Z" fill="#f59e0b" stroke="#b45309" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+  /* นโยบายสำรองของ 4 ทีมหลัก (ใช้เมื่อข้อมูลจากเซิร์ฟเวอร์ยังว่าง) */
+  const DEFAULT_POLICIES = {
+  1:["WiFi ฟรีทั่วมหาวิทยาลัย","เพิ่มพื้นที่อ่านหนังสือ 24 ชม.","ลดค่าอาหารโรงอาหาร","พัฒนาระบบขนส่งภายในมหาลัย","เพิ่มทุนการศึกษาสำหรับนักศึกษาที่ขาดแคลน"],
+  2:["ระบบ Smart Campus","App นักศึกษาอัจฉริยะ","ขยายเวลาห้องสมุดถึงเที่ยงคืน","พัฒนาพื้นที่ Co-Working Space","เพิ่มอุปกรณ์กีฬาและสันทนาการ"],
+  3:["Green Campus ลดโลกร้อน","ศูนย์ดูแลสุขภาพนักศึกษา","สนามกีฬาและนันทนาการ","พัฒนาระบบรับเรื่องร้องเรียน","ส่งเสริมกิจกรรมวัฒนธรรมไทย"],
+  4:["ระบบร้องเรียนออนไลน์","ตลาดนักศึกษา","กองทุนช่วยเหลือนักศึกษา","พัฒนาศูนย์แนะแนวอาชีพ","เพิ่มพื้นที่จอดรถนักศึกษา"]
+};
+  function policiesOf(c) {
+    const fromServer = (c && Array.isArray(c.policies)) ? c.policies.filter(Boolean) : [];
+    return fromServer.length ? fromServer : (DEFAULT_POLICIES[Number(c && c.id)] || []);
+  }
+  return { teamKit, kitVars, mixW, esc, hasCut, photoImg, avatar, policiesOf, CROWN };
+})();
 /* ── Navbar ─────────────────────────────────────────────── */
 async function initNavbar() {
   const path = location.pathname;
@@ -92,32 +142,20 @@ async function loadCandidates(containerId) {
   if (!container) return;
   try {
     const { candidates } = await api('/api/candidates');
-    const COLORS = ["#2563eb","#f59e0b","#10b981","#7c3aed"];
-    const PHOTOS = ["candidate-1.png","candidate-2.png","candidate-3.png","candidate-4.png"];
-    container.innerHTML = candidates.map((c,i) => {
-      const col = COLORS[i] || c.color;
+    container.innerHTML = candidates.map(c => {
+      const k = UBU_UI.teamKit(c);
       return `
-      <div style="background:#fff;border:1px solid var(--g200);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:all .25s;display:flex;flex-direction:column"
-           onclick="location.href='/candidate_detail.html?id=${c.id}'"
-           onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 48px rgba(0,0,0,.15)'"
-           onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <div style="position:relative;height:220px;overflow:hidden">
-          <img src="/images/${PHOTOS[i]}" alt="${c.name}" style="width:100%;height:100%;object-fit:cover;object-position:center top" onerror="this.style.display='none'">
-          <div style="position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(to top,rgba(0,0,0,.5),transparent)"></div>
-          <div style="position:absolute;top:12px;left:12px;width:40px;height:40px;border-radius:10px;background:${col};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff">${c.id}</div>
-          <div style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.9);color:#333;font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px">${c.party}</div>
+      <div class="cand-card" style="${UBU_UI.kitVars(k)}" onclick="location.href='/candidate_detail.html?id=${c.id}'">
+        <div class="cand-photo">
+          ${UBU_UI.photoImg(c)}
+          <div class="cand-badge">หมายเลข ${c.id}</div>
+          <div class="cand-arrow" aria-hidden="true">→</div>
         </div>
-        <div style="padding:16px 18px;flex:1;display:flex;flex-direction:column">
-          <div style="font-size:38px;font-weight:900;color:${col};line-height:1;margin-bottom:2px">${c.id}</div>
-          <div style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:4px">${c.name}</div>
-          <p style="font-size:12px;color:var(--g500);flex:1">"${c.slogan}"</p>
-          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--g100)">
-            <button style="width:100%;padding:10px;border-radius:var(--r-md);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;background:transparent;border:1.5px solid ${col};color:${col};transition:all .25s"
-                    onmouseover="this.style.background='${col}';this.style.color='#fff'"
-                    onmouseout="this.style.background='transparent';this.style.color='${col}'">
-              ดูรายละเอียด →
-            </button>
-          </div>
+        <div class="cand-info">
+          <div class="cand-name">${UBU_UI.esc(c.name)}</div>
+          <div><span class="cand-party">${UBU_UI.esc(c.party)}</span></div>
+          <p class="cand-slogan">"${UBU_UI.esc(c.slogan)}"</p>
+          <button class="cand-btn" type="button">ดูรายละเอียด</button>
         </div>
       </div>`;
     }).join('');
@@ -146,35 +184,98 @@ async function loadVoteCandidates() {
       return;
     }
     const { candidates } = await api('/api/candidates');
-    const COLORS = ["#2563eb","#f59e0b","#10b981","#7c3aed"];
-    const PHOTOS = ["candidate-1.png","candidate-2.png","candidate-3.png","candidate-4.png"];
-    container.innerHTML = candidates.map((c,i) => `
-      <div class="vote-card" id="vc-${c.id}" data-id="${c.id}" onclick="selectCandidate(${c.id})"
-           style="background:#fff;border:2px solid var(--g200);border-radius:var(--r-lg);padding:20px;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:16px">
-        <img src="/images/${PHOTOS[i]}" style="width:80px;height:80px;object-fit:cover;border-radius:10px" onerror="this.style.display='none'">
-        <div style="flex:1">
-          <div style="font-size:28px;font-weight:900;color:${COLORS[i]}">เบอร์ ${c.id}</div>
-          <h3 style="font-size:18px;font-weight:800;margin-bottom:4px">${c.name}</h3>
-          <span style="background:rgba(0,0,0,.06);font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px">${c.party}</span>
-          <p style="font-size:13px;color:var(--g500);margin-top:6px">"${c.slogan}"</p>
+    window._voteCandidates = candidates;
+    container.className = 'vote-grid';
+    container.setAttribute('role', 'radiogroup');
+    container.setAttribute('aria-label', 'เลือกผู้สมัคร 1 คน');
+    container.innerHTML = candidates.map(c => {
+      const k = UBU_UI.teamKit(c);
+      return `
+      <div class="vote-card" id="vc-${c.id}" data-id="${c.id}" role="radio" aria-checked="false" tabindex="0"
+           style="${UBU_UI.kitVars(k)}" onclick="selectCandidate(${c.id})" onkeydown="voteCardKey(event,${c.id})">
+        <div class="vote-photo">
+          ${UBU_UI.photoImg(c)}
+          <div class="vote-badge">หมายเลข ${c.id}</div>
+          <div class="vote-check" id="vcirc-${c.id}" aria-hidden="true"></div>
         </div>
-        <div class="vote-circle" id="vcirc-${c.id}" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--g300);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .25s"></div>
-      </div>`).join('');
+        <div class="vote-info">
+          <div class="vote-name">${UBU_UI.esc(c.name)}</div>
+          <div><span class="cand-party">${UBU_UI.esc(c.party)}</span></div>
+          <p class="vote-slogan">"${UBU_UI.esc(c.slogan)}"</p>
+        </div>
+      </div>`;
+    }).join('');
   } catch(e) { console.error(e); }
 }
+function voteCardKey(e, id) {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectCandidate(id); }
+}
 function selectCandidate(id) {
-  const COLORS = ["#2563eb","#f59e0b","#10b981","#7c3aed"];
   selectedCandidateId = id;
-  document.querySelectorAll('.vote-card').forEach(c => {
-    const sel = parseInt(c.dataset.id) === id;
-    const col = COLORS[parseInt(c.dataset.id)-1];
-    c.style.borderColor = sel ? col : 'var(--g200)';
-    c.style.background  = sel ? 'linear-gradient(135deg,#eff6ff,#dbeafe)' : '#fff';
-    const circle = c.querySelector('.vote-circle');
-    if (circle) { circle.textContent = sel?'✓':''; circle.style.background=sel?col:''; circle.style.borderColor=sel?col:'var(--g300)'; circle.style.color=sel?'#fff':''; }
+  document.querySelectorAll('.vote-card').forEach(card => {
+    const sel = parseInt(card.dataset.id) === id;
+    card.classList.toggle('selected', sel);
+    card.setAttribute('aria-checked', sel ? 'true' : 'false');
+    const chk = card.querySelector('.vote-check');
+    if (chk) chk.textContent = sel ? '✓' : '';
   });
-  const btn = document.getElementById('vote-submit-btn');
-  if (btn) { btn.disabled=false; btn.style.opacity='1'; }
+  showVoteBar(id);
+}
+/* ── แถบยืนยันด้านล่าง: โชว์ว่าเลือกใคร + ปุ่ม "กดค้างเพื่อยืนยัน" (กันกดพลาด) ── */
+const VOTE_HOLD_MS = 1500;
+function showVoteBar(id) {
+  const c = (window._voteCandidates || []).find(x => x.id === id);
+  if (!c) return;
+  const k = UBU_UI.teamKit(c);
+  let bar = document.getElementById('vote-bar');
+  if (!bar) { bar = document.createElement('div'); bar.id = 'vote-bar'; bar.className = 'vote-bar'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'ยืนยันการลงคะแนน'); document.body.appendChild(bar); }
+  bar.setAttribute('style', UBU_UI.kitVars(k));
+  bar.innerHTML = `
+    <div class="vb-who">
+      ${UBU_UI.avatar(c, 46, true)}
+      <div><div class="vb-label">คุณเลือก</div><div class="vb-name">หมายเลข ${c.id} ${UBU_UI.esc(c.name)}</div></div>
+    </div>
+    <div class="vb-note">คะแนนจะถูกบันทึกทันที · การลงคะแนนไม่สามารถเปลี่ยนแปลงได้ เมื่อบันทึกลงแล้ว</div>
+    <button id="vote-hold-btn" class="vb-hold" type="button" aria-label="กดค้างเพื่อยืนยันการลงคะแนน (กดปุ่มนี้ค้างไว้ หรือกด Enter ค้างไว้)">
+      <span class="vb-fill"></span><span class="vb-text">กดค้างเพื่อยืนยัน</span>
+    </button>`;
+  bindVoteHold(document.getElementById('vote-hold-btn'));
+  requestAnimationFrame(() => bar.classList.add('show'));
+  document.body.classList.add('has-vote-bar');
+}
+function bindVoteHold(btn) {
+  const fill = btn.querySelector('.vb-fill'), txt = btn.querySelector('.vb-text');
+  let raf = null, start = 0, active = false, fired = false;
+  function frame(now) {
+    if (!active) return;
+    const p = Math.min(1, (now - start) / VOTE_HOLD_MS);
+    fill.style.width = (p * 100) + '%';
+    if (p >= 1) {
+      active = false; fired = true; btn.disabled = true; txt.textContent = 'กำลังยืนยัน…';
+      submitVote();
+      return;
+    }
+    txt.textContent = 'กดค้างไว้…';
+    raf = requestAnimationFrame(frame);
+  }
+  function begin(e) {
+    if (fired || active) return;
+    if (e.type === 'keydown' && (e.repeat || !(e.key === 'Enter' || e.key === ' '))) return;
+    if (e.cancelable) e.preventDefault();
+    active = true; start = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+  function end() {
+    if (!active) return;
+    active = false; cancelAnimationFrame(raf);
+    fill.style.transition = 'width .25s'; fill.style.width = '0%';
+    setTimeout(() => { fill.style.transition = ''; }, 260);
+    txt.textContent = 'กดค้างเพื่อยืนยัน';
+  }
+  btn.addEventListener('pointerdown', begin);
+  ['pointerup', 'pointerleave', 'pointercancel', 'blur', 'keyup'].forEach(t => btn.addEventListener(t, end));
+  btn.addEventListener('keydown', begin);
+  btn.addEventListener('contextmenu', e => e.preventDefault());
 }
 /* ── อ่านข้อมูลผู้สมัครที่โหวต "ครั้งเดียว" แล้วลบทันที (ป้องกันดูซ้ำ/เป็นหลักฐานบังคับโหวต) ── */
 function getVotedCandidateOnce() {
@@ -233,7 +334,6 @@ function hideVoteLoadingOverlay(finalMessage) {
 const VOTE_LOADING_MIN_MS = 2600; // ★ เวลาขั้นต่ำที่หน้าโหลดต้องแสดง (กันโหลดเร็วเกินจนดูเหมือนไม่มีอะไรเกิดขึ้น)
 async function submitVote() {
   if (!selectedCandidateId) return;
-  closeModal('vote-modal');
   const loadingStartedAt = Date.now(); // ★ จับเวลาเริ่มโหลด
   showVoteLoadingOverlay(); // ★ โชว์หน้าจอโหลดเต็มจอ แทนปุ่มค้างเฉยๆ ระหว่างรอ Blockchain ยืนยัน
   try {
@@ -251,14 +351,8 @@ async function submitVote() {
   } catch(err) {
     hideVoteLoadingOverlay();
     Toast.error(err.message);
-    const btn = document.getElementById('m-confirm-btn');
-    if (btn) { btn.disabled=false; btn.textContent='ยืนยันการลงคะแนน ✓'; }
+    if (selectedCandidateId) showVoteBar(selectedCandidateId); // ★ สร้างปุ่มกดค้างใหม่ให้กดลองอีกครั้งได้
   }
-}
-function openVoteConfirm() {
-  if (!selectedCandidateId) return;
-  document.getElementById('vote-modal')?.classList.add('open');
-  document.body.style.overflow='hidden';
 }
 /* ── Results ────────────────────────────────────────────── */
 // ★★★ แก้ไขแล้ว: ระหว่างเปิดรับคะแนน โชว์แค่ยอดผู้ใช้สิทธิ์ ไม่โชว์คะแนนแยกผู้สมัคร ★★★
@@ -312,7 +406,7 @@ function startCountdown(closingTimeISO, elId) {
     const diff = target - now;
 
     if (diff <= 0) {
-      el.innerHTML = `<span style="color:#ef4444">⏰ ปิดรับคะแนนแล้ว</span>`;
+      el.innerHTML = `<span>⏰ ปิดรับคะแนนแล้ว</span>`;
       clearInterval(_countdownInterval);
       return;
     }
@@ -337,7 +431,7 @@ async function loadResults() {
 
     // ★ ช่องสถิติที่ 3 บนสุด — นับถอยหลังเวลาปิดรับคะแนน (โชว์ตลอด ไม่ว่า isOpen จะเป็นอะไร ถ้ามีการตั้งเวลาไว้)
     const topCountdownEl = document.getElementById('countdown-topbox');
-    if (topCountdownEl) {
+    if (topCountdownEl && isOpen) {
       if (closingTime) startCountdown(closingTime, 'countdown-topbox');
       else topCountdownEl.textContent = 'ยังไม่กำหนด';
     }
@@ -382,50 +476,234 @@ async function loadResults() {
       return; // ★ ออกจากฟังก์ชันเลย ไม่ไปดึง candidates มาโชว์คะแนน
     }
 
-    // ── ปิดรับคะแนนแล้ว: โชว์ผลเต็มแบบเดิมทุกอย่าง ──
+    // ── ปิดรับคะแนนแล้ว: แสดงผลแบบสนามแข่ง ──
     const { candidates } = await api('/api/candidates');
-    const total = totalVotes || 1;
-    const sorted = [...candidates].sort((a,b) => b.voteCount - a.voteCount);
-    if (container) {
-      container.innerHTML = sorted.map((c,i) => {
-        const rank = i + 1;
-        const pct = Math.round(c.voteCount/total*100);
-        const isTop = rank === 1;
-        const policies = (c.policies||[]).slice(0,4);
-        return `
-        <div style="border-radius:12px;background:${isTop?'var(--bg-warning,#fef3c7)':'var(--g50)'};overflow:hidden;margin-bottom:10px">
-          <div onclick="const d=document.getElementById('rdetail-${c.id}');const a=document.getElementById('rarrow-${c.id}');const open=d.style.display!=='none';d.style.display=open?'none':'block';a.style.transform=open?'rotate(0deg)':'rotate(180deg)';"
-               style="display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer">
-            <div style="width:44px;height:44px;border-radius:9px;background:${isTop?c.color:'#fff'};border:${isTop?'none':'1.5px solid var(--g200)'};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
-              <span style="font-size:8px;color:${isTop?'#fff':'var(--g500)'};line-height:1">เบอร์</span>
-              <span style="font-size:17px;font-weight:800;color:${isTop?'#fff':'var(--navy)'};line-height:1.2">${rank}</span>
-            </div>
-            <img src="/images/${c.photo}" onerror="this.style.display='none'" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #fff;flex-shrink:0">
-            <div style="flex:1;min-width:0">
-              <div style="font-weight:800;font-size:15px;color:var(--navy)">${c.emoji||''} ${c.name}</div>
-              <div style="font-size:12px;color:var(--g500);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.party||''}</div>
-            </div>
-            <div style="text-align:right;flex-shrink:0">
-              <div style="font-size:19px;font-weight:800;color:${isTop?c.color:'var(--navy)'}">${c.voteCount}</div>
-              <div style="font-size:11px;color:var(--g400)">${pct}%</div>
-            </div>
-            <svg id="rarrow-${c.id}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--g400);flex-shrink:0;transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-          <div style="height:6px;background:rgba(0,0,0,.06);margin:0 16px 14px;border-radius:4px;overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:${c.color};border-radius:4px;transition:width 1s"></div>
-          </div>
-          <div id="rdetail-${c.id}" style="display:none;padding:0 16px 16px;border-top:1px solid rgba(0,0,0,.06)">
-            <div style="font-size:12px;color:var(--g500);margin:12px 0 8px;font-weight:700">นโยบายหลัก</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
-              ${policies.length ? policies.map(p=>`<span style="font-size:11.5px;background:#fff;padding:4px 11px;border-radius:999px;color:var(--g600)">${p}</span>`).join('') : `<span style="font-size:12px;color:var(--g400)">ยังไม่มีข้อมูลนโยบาย</span>`}
-            </div>
-            <a href="/candidate_detail.html?id=${c.id}" class="btn btn-primary btn-sm" style="width:100%;justify-content:center">ดูรายละเอียดเต็ม →</a>
-          </div>
-        </div>`;
-      }).join('');
-    }
+    renderClosedResults(candidates, totalVotes, totalVoters || 2450);
     if (tvEl) tvEl.textContent = totalVotes;
   } catch(e) { console.error(e); }
+}
+/* ── หน้าผลคะแนนหลังปิดรับ: แบบสนามแข่ง ───────────────────────── */
+let _raceData = null;
+function rankList(list) {
+  const ranked = [...list].sort((a, b) => (b.voteCount || 0) - (a.voteCount || 0));
+  let rank = 0, prev = null;
+  ranked.forEach((c, i) => { const v = c.voteCount || 0; if (v !== prev) { rank = i + 1; prev = v; } c._rank = rank; });  // คะแนนเท่ากัน = อันดับเดียวกัน
+  return ranked;
+}
+function renderClosedResults(candidates, totalVotes, totalVoters) {
+  const container = document.getElementById('results-container');
+  if (!container) return;
+  const ranked = rankList(candidates);
+  const total = ranked.reduce((s, c) => s + (c.voteCount || 0), 0);
+  const turnout = totalVoters ? Math.min(100, total / totalVoters * 100) : 0;
+  const badge = document.getElementById('res-badge'); if (badge) badge.textContent = 'ประกาศผลแล้ว';
+  const l3 = document.getElementById('stat3-label'), v3 = document.getElementById('countdown-topbox');
+  if (l3) l3.textContent = 'อัตราผู้มาใช้สิทธิ์';          // หลังปิดรับแล้ว ตัวนับถอยหลังไม่มีความหมาย
+  if (v3) v3.textContent = turnout.toFixed(1) + '%';
+  const title = document.getElementById('results-title'); if (title) title.textContent = 'อันดับคะแนน';
+  const sub = document.getElementById('results-sub');
+  if (total === 0) {
+    if (sub) sub.textContent = '';
+    container.innerHTML = `<div style="text-align:center;padding:48px 24px;background:var(--g50);border-radius:16px"><div style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:6px">ยังไม่มีผู้ลงคะแนน</div><p style="color:var(--g500);font-size:14px">การเลือกตั้งปิดรับคะแนนแล้ว แต่ไม่มีคะแนนที่ถูกบันทึกไว้</p></div>`;
+    return;
+  }
+  const leaders = ranked.filter(c => c._rank === 1);
+  const second = ranked.find(c => c._rank > 1);
+  if (sub) {
+    sub.textContent = leaders.length > 1
+      ? `คะแนนเสมอกันที่อันดับ 1: ${leaders.map(c => c.name).join(' และ ')}`
+      : `${leaders[0].name} นำอันดับ 2 อยู่ ${((leaders[0].voteCount || 0) - (second ? (second.voteCount || 0) : 0)).toLocaleString('th-TH')} คะแนน`;
+  }
+  _raceData = { ranked, total, turnout };
+  const actions = document.getElementById('res-actions'); if (actions) actions.style.display = 'flex';
+  container.innerHTML = raceDesktopHtml(ranked, total) + raceMobileHtml(ranked, total);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.querySelectorAll('[data-w]').forEach(el => { el.style.width = el.dataset.w + '%'; });   // แถบวิ่งจากศูนย์
+  }));
+  ranked.forEach(c => { animateCountUp('rv-' + c.id, c.voteCount || 0, 1100); animateCountUp('rvm-' + c.id, c.voteCount || 0, 1100); });
+}
+function raceDetailHtml(c, k) {
+  const pol = UBU_UI.policiesOf(c).slice(0, 3);
+  return `<div class="rd-in" style="background:${UBU_UI.mixW(k.p, .6)};border-color:${k.p}">
+    <div class="rd-top">${UBU_UI.avatar(c, 72, false)}
+      <div style="flex:1;min-width:0">
+        <div class="rd-t">นโยบายเด่นของ${UBU_UI.esc(c.name)}</div>
+        <div class="rd-chips">${pol.length ? pol.map(p => `<span style="border-color:${k.p}">${UBU_UI.esc(p)}</span>`).join('') : '<span class="muted">ยังไม่มีข้อมูลนโยบาย</span>'}</div>
+      </div>
+    </div>
+    ${c.slogan ? `<p class="rd-slogan">"${UBU_UI.esc(c.slogan)}"</p>` : ''}
+    <div class="rd-btns"><a class="btn btn-primary btn-sm" href="/candidate_detail.html?id=${c.id}">ดูนโยบายทั้งหมด →</a><a class="btn btn-ghost btn-sm" href="/blockchain.html">ตรวจสอบคะแนนที่บันทึกไว้</a></div>
+  </div>`;
+}
+function raceDesktopHtml(ranked, total) {
+  const maxV = Math.max(1, ranked[0].voteCount || 0);
+  const leadersCount = ranked.filter(c => c._rank === 1).length;
+  return `<div class="race-desktop">` + ranked.map(c => {
+    const k = UBU_UI.teamKit(c), v = c.voteCount || 0, first = c._rank === 1;
+    const w = Math.round(v / maxV * 62 * 10) / 10;
+    const pct = total ? (v / total * 100).toFixed(1) : '0.0';
+    const gap = first ? (leadersCount > 1 ? 'เสมอกัน' : 'ผู้นำ') : `ตามหลัง ${(maxV - v).toLocaleString('th-TH')}`;
+    return `<div class="rl" data-rid="${c.id}" style="${UBU_UI.kitVars(k)}">
+      <div class="rl-row" role="button" tabindex="0" aria-expanded="false" onclick="toggleRaceDetail(${c.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleRaceDetail(${c.id})}">
+        <div class="rl-rank${first ? ' first' : ''}" aria-label="อันดับ ${c._rank}">${c._rank}</div>
+        <div class="rl-track">
+          <div class="rl-bar${first ? ' first' : ''}" data-w="${w}" style="width:0">
+            <div class="rl-name"><div class="n">${UBU_UI.esc(c.name)}</div><div class="p">${UBU_UI.esc(c.party || '')}</div></div>
+            <div class="rl-avatar">${first ? `<div class="rl-crown">${UBU_UI.CROWN}</div>` : ''}${UBU_UI.avatar(c, 96, true)}</div>
+          </div>
+          <div class="rl-num" style="left:calc(max(${w}%, 310px) + 30px)"><span class="v" id="rv-${c.id}">0</span><span class="pc">${pct}%</span><span class="gap">${gap}</span></div>
+        </div>
+        <div class="rl-chev" aria-hidden="true">⌄</div>
+      </div>
+      <div class="rl-detail">${raceDetailHtml(c, k)}</div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+function raceMobileHtml(ranked, total) {
+  const maxV = Math.max(1, ranked[0].voteCount || 0);
+  return `<div class="race-mobile">` + ranked.map(c => {
+    const k = UBU_UI.teamKit(c), v = c.voteCount || 0, first = c._rank === 1;
+    const pct = total ? (v / total * 100).toFixed(1) : '0.0';
+    return `<div class="rm${first ? ' first' : ''}" data-rid="${c.id}" style="${UBU_UI.kitVars(k)}">
+      <div class="rm-row" role="button" tabindex="0" aria-expanded="false" onclick="toggleRaceDetail(${c.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleRaceDetail(${c.id})}">
+        <div class="rm-av">${UBU_UI.avatar(c, 64, true)}<span class="rm-rank" aria-label="อันดับ ${c._rank}">${c._rank}</span></div>
+        <div class="rm-mid"><div class="n">${UBU_UI.esc(c.name)}</div><div class="p">${UBU_UI.esc(c.party || '')}</div></div>
+        <div class="rm-val"><div class="v" id="rvm-${c.id}">0</div><div class="pc">${pct}%</div></div>
+      </div>
+      <div class="rm-bar"><div data-w="${Math.round(v / maxV * 100)}" style="width:0"></div></div>
+      <div class="rl-detail">${raceDetailHtml(c, k)}</div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+function toggleRaceDetail(id) {
+  document.querySelectorAll(`[data-rid="${id}"]`).forEach(el => {
+    const open = el.classList.toggle('open');
+    const row = el.querySelector('[role="button"]');
+    if (row) row.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+}
+
+/* ── โหมดประกาศผล (เต็มจอ ใช้ฉายขึ้นจอใหญ่ในวันประกาศผล) ────────── */
+function openAnnounce() {
+  if (!_raceData) return;
+  const { ranked, total } = _raceData;
+  const groups = [];
+  ranked.forEach(c => { let g = groups.find(x => x.rank === c._rank); if (!g) { g = { rank: c._rank, teams: [] }; groups.push(g); } g.teams.push(c); });
+  groups.reverse();                                                       // เปิดผลจากอันดับท้ายขึ้นไปอันดับ 1
+  const steps = [{ type: 'intro' }, ...groups.map(g => ({ type: g.rank === 1 ? 'winner' : 'rank', g }))];
+  let i = 0, autoTimer = null;
+  const ov = document.createElement('div');
+  ov.className = 'ann'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'โหมดประกาศผล');
+  ov.innerHTML = `
+    <div class="ann-top"><div class="ann-brand"><img src="/images/ubu-logo.png" alt="" style="height:42px"><div><div style="font-weight:800;font-size:16px">ประกาศผลการเลือกตั้งสภานักศึกษา</div><div style="font-size:12px;opacity:.6">มหาวิทยาลัยอุบลราชธานี 2570</div></div></div><div class="ann-dots" id="ann-dots"></div><button class="ann-x" id="ann-close" type="button" aria-label="ปิดโหมดประกาศผล">✕</button></div>
+    <div class="ann-stage" id="ann-stage"></div>
+    <div class="ann-ctl"><button class="ann-btn" id="ann-prev" type="button">◀ ก่อนหน้า</button><button class="ann-btn primary" id="ann-next" type="button">ถัดไป ▶</button><button class="ann-btn" id="ann-auto" type="button">เล่นอัตโนมัติ</button><button class="ann-btn" id="ann-full" type="button">เต็มจอ</button></div>`;
+  document.body.appendChild(ov); document.body.style.overflow = 'hidden';
+  const stage = ov.querySelector('#ann-stage'), dots = ov.querySelector('#ann-dots');
+  const teamHtml = (c, size) => `<div class="ann-team">${UBU_UI.avatar(c, size, true)}<div class="ann-tn">${UBU_UI.esc(c.name)}</div><div class="ann-tv"><span id="ann-v-${c.id}">0</span> <small>คะแนน · ${total ? (((c.voteCount || 0) / total) * 100).toFixed(1) : '0.0'}%</small></div></div>`;
+  function confetti() {
+    const cols = ['#2563eb', '#f59e0b', '#10b981', '#7c3aed', '#ef4444', '#ffffff'];
+    let h = '';
+    for (let n = 0; n < 70; n++) h += `<div class="ann-conf" style="left:${Math.random() * 100}%;width:${6 + Math.random() * 7}px;height:${8 + Math.random() * 10}px;background:${cols[n % cols.length]};animation-duration:${4 + Math.random() * 5}s;animation-delay:${-Math.random() * 6}s"></div>`;
+    return h;
+  }
+  function render() {
+    const s = steps[i];
+    dots.innerHTML = steps.slice(1).map((_, n) => `<span class="${n < i ? 'done' : (n === i - 1 ? 'cur' : '')}"></span>`).join('');
+    if (s.type === 'intro') {
+      stage.innerHTML = `<div class="ann-pop"><div style="font-size:clamp(28px,5vw,56px);font-weight:800">ประกาศผลการเลือกตั้ง</div><div style="font-size:clamp(16px,2vw,24px);opacity:.75;margin-top:10px">ผู้มาใช้สิทธิ์ ${total.toLocaleString('th-TH')} คน</div><div style="margin-top:28px;font-size:15px;opacity:.6">กด "ถัดไป" หรือปุ่มลูกศรขวา เพื่อเริ่มประกาศ</div></div>`;
+    } else if (s.type === 'rank') {
+      stage.innerHTML = `<div class="ann-pop"><div class="ann-badge">อันดับ ${s.g.rank}</div><div class="ann-row">${s.g.teams.map(c => teamHtml(c, 190)).join('')}</div></div>`;
+      s.g.teams.forEach(c => animateCountUp('ann-v-' + c.id, c.voteCount || 0, 1300));
+    } else {
+      const tie = s.g.teams.length > 1;
+      const others = ranked.filter(c => c._rank !== 1);
+      stage.innerHTML = `<div class="ann-conf-wrap">${confetti()}</div><div class="ann-pop"><div class="ann-badge gold">${UBU_UI.CROWN}${tie ? 'คะแนนเสมอกัน' : 'ผู้ชนะการเลือกตั้ง'}</div><div class="ann-row">${s.g.teams.map(c => teamHtml(c, tie ? 220 : 300)).join('')}</div></div>
+        <div class="ann-others">${others.map(c => `<div class="ann-chip">${UBU_UI.avatar(c, 44, false)}<div><small>อันดับ ${c._rank}</small><div style="font-weight:800">${UBU_UI.esc(c.name)}</div></div><b>${(c.voteCount || 0).toLocaleString('th-TH')}</b></div>`).join('')}</div>`;
+      s.g.teams.forEach(c => animateCountUp('ann-v-' + c.id, c.voteCount || 0, 1600));
+    }
+    ov.querySelector('#ann-prev').disabled = i === 0;
+    ov.querySelector('#ann-next').disabled = i === steps.length - 1;
+  }
+  function go(d) { const n = Math.min(steps.length - 1, Math.max(0, i + d)); if (n !== i) { i = n; render(); } if (i === steps.length - 1) stopAuto(); }
+  function stopAuto() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; ov.querySelector('#ann-auto').textContent = 'เล่นอัตโนมัติ'; } }
+  function close() { stopAuto(); document.removeEventListener('keydown', onKey); ov.remove(); document.body.style.overflow = ''; if (document.fullscreenElement) { try { document.exitFullscreen(); } catch(_) {} } }
+  function onKey(e) {
+    if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+  }
+  ov.querySelector('#ann-next').onclick = () => go(1);
+  ov.querySelector('#ann-prev').onclick = () => go(-1);
+  ov.querySelector('#ann-close').onclick = close;
+  ov.querySelector('#ann-auto').onclick = () => {
+    if (autoTimer) { stopAuto(); return; }
+    ov.querySelector('#ann-auto').textContent = 'หยุดเล่น';
+    autoTimer = setInterval(() => go(1), 3800);
+  };
+  ov.querySelector('#ann-full').onclick = () => { try { (ov.requestFullscreen || document.documentElement.requestFullscreen).call(ov.requestFullscreen ? ov : document.documentElement); } catch(_) {} };
+  document.addEventListener('keydown', onKey);
+  render();
+}
+
+/* ── แชร์ผลเป็นภาพ (สร้างภาพในเบราว์เซอร์ ไม่ส่งข้อมูลไปไหน) ───────── */
+async function shareResultImage() {
+  if (!_raceData) return;
+  const { ranked, total, turnout } = _raceData;
+  const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d');
+  const FONT = '"Noto Sans Thai","Sarabun",sans-serif';
+  try { await document.fonts.load(`800 60px ${FONT}`); await document.fonts.load(`400 30px ${FONT}`); } catch(_) {}
+  const loadImg = src => new Promise(res => { if (!src) return res(null); const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+  const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#0f172a'); bg.addColorStop(1, '#1e3a8a');
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  g.textAlign = 'center'; g.fillStyle = '#fff'; g.font = `800 56px ${FONT}`; g.fillText('ผลการเลือกตั้งสภานักศึกษา', W / 2, 120);
+  g.fillStyle = 'rgba(255,255,255,.7)'; g.font = `400 32px ${FONT}`; g.fillText('มหาวิทยาลัยอุบลราชธานี 2570', W / 2, 170);
+  async function drawAvatar(c, cx, cy, r) {
+    const k = UBU_UI.teamKit(c);
+    g.save();
+    g.beginPath(); g.arc(cx, cy, r + 12, 0, Math.PI * 2); g.fillStyle = k.a; g.fill();
+    g.beginPath(); g.arc(cx, cy, r + 5, 0, Math.PI * 2); g.fillStyle = '#fff'; g.fill();
+    g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.clip();
+    const grd = g.createRadialGradient(cx, cy - r * .28, r * .1, cx, cy, r); grd.addColorStop(0, UBU_UI.mixW(k.p, .55)); grd.addColorStop(1, k.p);
+    g.fillStyle = grd; g.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+    const im = await loadImg(UBU_UI.hasCut(c) ? `/images/cutout/candidate-${c.id}.png` : (c.photo ? `/images/${c.photo}` : ''));
+    if (im) { const w = 2 * r, h = w * im.height / im.width; g.drawImage(im, cx - r, cy + r - h, w, h); }
+    g.restore();
+  }
+  const leaders = ranked.filter(c => c._rank === 1), tie = leaders.length > 1;
+  const shown = leaders.slice(0, 2);
+  const R = shown.length === 1 ? 250 : 180, cy = 560;
+  for (let n = 0; n < shown.length; n++) await drawAvatar(shown[n], shown.length === 1 ? W / 2 : W * (n + 1) / 3, cy, R);
+  g.fillStyle = '#fde68a'; g.font = `800 36px ${FONT}`; g.fillText(tie ? 'คะแนนเสมอกัน' : 'ผู้ชนะการเลือกตั้ง', W / 2, 270);
+  g.fillStyle = '#fff';
+  if (shown.length === 1) {
+    g.font = `800 72px ${FONT}`; g.fillText(shown[0].name, W / 2, 900);
+    g.fillStyle = '#93c5fd'; g.font = `800 58px ${FONT}`;
+    g.fillText(`${(shown[0].voteCount || 0).toLocaleString('th-TH')} คะแนน · ${(((shown[0].voteCount || 0) / total) * 100).toFixed(1)}%`, W / 2, 985);
+  } else {
+    g.font = `800 50px ${FONT}`; shown.forEach((c, n) => g.fillText(c.name, W * (n + 1) / 3, 850));
+    g.fillStyle = '#93c5fd'; g.font = `800 50px ${FONT}`; shown.forEach((c, n) => g.fillText((c.voteCount || 0).toLocaleString('th-TH') + ' คะแนน', W * (n + 1) / 3, 925));
+  }
+  const others = ranked.filter(c => c._rank !== 1).slice(0, 3);
+  for (let n = 0; n < others.length; n++) {
+    const cx = W * (n + .5) / others.length, c = others[n];
+    await drawAvatar(c, cx, 1110, 56);
+    g.fillStyle = 'rgba(255,255,255,.7)'; g.font = `400 24px ${FONT}`; g.fillText('อันดับ ' + c._rank, cx, 1205);
+    g.fillStyle = '#fff'; g.font = `800 30px ${FONT}`; g.fillText(c.name, cx, 1243);
+    g.fillStyle = '#93c5fd'; g.font = `800 34px ${FONT}`; g.fillText((c.voteCount || 0).toLocaleString('th-TH'), cx, 1288);
+  }
+  g.fillStyle = 'rgba(255,255,255,.55)'; g.font = `400 24px ${FONT}`;
+  g.fillText(`ผู้มาใช้สิทธิ์ ${total.toLocaleString('th-TH')} คน (${turnout.toFixed(1)}%)`, W / 2, 1330);
+  const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+  if (!blob) { Toast.error('สร้างภาพไม่สำเร็จ'); return; }
+  const file = new File([blob], 'ผลการเลือกตั้ง.png', { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'ผลการเลือกตั้งสภานักศึกษา' }); return; } catch(e) { if (e && e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ผลการเลือกตั้ง.png';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  Toast.success('บันทึกภาพผลคะแนนแล้ว');
 }
 /* ── Blockchain ─────────────────────────────────────────── */
 async function loadBlockchain() {
@@ -470,4 +748,4 @@ document.addEventListener('DOMContentLoaded', () => {
   if (page==='results')    loadResults();
   if (page==='blockchain') loadBlockchain();
 });
-Object.assign(window,{ selectCandidate, openVoteConfirm, submitVote, openModal, closeModal, logout, Toast });
+Object.assign(window,{ selectCandidate, voteCardKey, submitVote, openModal, closeModal, logout, Toast, toggleRaceDetail, openAnnounce, shareResultImage });

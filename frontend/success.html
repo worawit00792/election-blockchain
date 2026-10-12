@@ -18,67 +18,128 @@
   <div id="nav-auth" class="nav-auth"></div>
 </div></nav>
 
-<div class="page-body" style="background:var(--g50);min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:40px 24px">
-  <div style="max-width:600px;width:100%">
-
-    <!-- Success Card -->
-    <div style="background:#fff;border-radius:var(--r-xl);box-shadow:0 8px 40px rgba(0,0,0,.12);overflow:hidden">
-
-      <!-- Top green bar -->
-      <div style="background:linear-gradient(135deg,#10b981,#059669);padding:40px;text-align:center">
-        <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px;border:3px solid rgba(255,255,255,.4)">✓</div>
-        <h1 style="color:#fff;font-size:28px;font-weight:800;margin-bottom:6px">ลงคะแนนสำเร็จ!</h1>
-        <p style="color:rgba(255,255,255,.8);font-size:14px">คะแนนของคุณถูกบันทึกแล้ว</p>
-      </div>
-
+<style>
+.sx-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--navy),#1e3a8a);padding:46px 0 92px;text-align:center}
+#sx-conf{position:absolute;inset:0;pointer-events:none}
+#sx-conf i{position:absolute;border-radius:2px;opacity:.85;animation:sxIn .9s ease-out both}
+@keyframes sxIn{from{opacity:0;transform:translateY(-26px)}to{opacity:.85}}
+.sx-ring{position:relative;width:84px;height:84px;margin:0 auto;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;color:#fff;font-size:46px;font-weight:800;box-shadow:0 0 0 10px rgba(16,185,129,.25),0 0 0 22px rgba(16,185,129,.12);animation:sxPop .6s cubic-bezier(.2,1.3,.3,1) both}
+@keyframes sxPop{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.sx-wrap{position:relative;max-width:960px;margin:-52px auto 48px;padding:0 24px}
+.sx-card{background:#fff;border-radius:28px;box-shadow:0 20px 60px rgba(15,23,42,.18);padding:36px;display:flex;gap:36px}
+.sx-photo{position:relative;width:380px;flex-shrink:0}
+.sx-pic{position:relative;aspect-ratio:800/1050;border-radius:24px;overflow:hidden;background:radial-gradient(circle at 50% 38%,var(--tl) 0%,var(--tp) 72%);box-shadow:0 0 0 4px var(--ta),0 20px 50px rgba(15,23,42,.25);transition:filter .3s}
+.sx-pic::after{content:"";position:absolute;left:0;right:0;bottom:0;height:30%;background:linear-gradient(to top,rgba(15,23,42,.22),transparent);pointer-events:none}
+.sx-badge{position:absolute;z-index:2;top:16px;left:16px;background:var(--ta);color:#fff;font-size:14px;font-weight:800;padding:7px 16px;border-radius:999px;border:2px solid #fff}
+.sx-stamp{position:absolute;z-index:2;right:14px;bottom:26px;transform:rotate(-12deg);border:4px solid var(--td);color:var(--td);background:rgba(255,255,255,.9);font-weight:800;font-size:24px;letter-spacing:.04em;padding:6px 16px;border-radius:10px}
+.sx-info{flex:1;min-width:0;padding-top:6px}
+.sx-who{transition:filter .3s}
+.sx-hidden .sx-pic,.sx-hidden .sx-who{filter:blur(18px)}
+.sx-label{font-size:14px;color:var(--g500)}
+.sx-name{font-size:44px;font-weight:800;color:var(--navy);line-height:1.15;margin-top:4px}
+.sx-party{display:inline-block;background:var(--tp);color:var(--td);font-size:13px;font-weight:700;padding:5px 14px;border-radius:999px;margin-top:10px}
+.sx-slogan{font-size:15px;color:#475569;margin:14px 0 0;line-height:1.6}
+.sx-note{margin-top:20px;background:#fffbeb;border:1px solid #fcd34d;border-radius:14px;padding:12px 14px;display:flex;gap:12px;align-items:center}
+.sx-note p{flex:1;font-size:13px;color:#92400e;line-height:1.5;margin:0}
+.sx-note button{font-size:13px;font-weight:700;color:var(--navy);background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:8px 12px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.sx-sec{margin-top:22px;font-size:12px;font-weight:700;color:var(--g400);letter-spacing:.08em}
+.sx-hash{display:flex;gap:8px;margin-top:8px}
+.sx-hash code{flex:1;min-width:0;font-family:monospace;font-size:12px;background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:10px 12px;color:var(--navy);word-break:break-all}
+.sx-hash button{font-size:13px;font-weight:700;color:#2563eb;border:1px solid #bfdbfe;background:#eff6ff;border-radius:10px;padding:0 14px;cursor:pointer;font-family:inherit}
+.sx-btns{display:flex;gap:12px;margin-top:22px}
+.sx-btns .btn{flex:1;justify-content:center}
+.sx-solo{text-align:center;padding:12px 8px;width:100%}
+.sx-solo .sx-stamp{position:static;display:inline-block;transform:rotate(-8deg);margin:6px 0 18px;font-size:30px;padding:10px 24px}
+@media (max-width:820px){
+  .sx-card{flex-direction:column;padding:18px;gap:0}
+  .sx-photo{width:100%}
+  .sx-info{padding-top:22px}
+  .sx-name{font-size:30px}
+  .sx-hero{padding:34px 0 80px}
+  .sx-btns{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){ #sx-conf i,.sx-ring{animation:none} }
+</style>
+<div class="page-body" style="background:var(--g50)">
+  <div class="sx-hero">
+    <div id="sx-conf" aria-hidden="true"></div>
+    <div style="position:relative">
+      <div class="sx-ring" aria-hidden="true">✓</div>
+      <h1 style="color:#fff;font-size:36px;font-weight:800;margin-top:26px">ลงคะแนนสำเร็จ!</h1>
+      <p style="color:rgba(255,255,255,.75);font-size:15px;margin-top:6px">คะแนนของคุณถูกบันทึกแล้ว</p>
+    </div>
+  </div>
+  <div class="sx-wrap">
+    <div class="sx-card" id="sx-card">
       <!-- ★ โชว์ผู้สมัครที่เลือก "ครั้งเดียว" — จะไม่ปรากฏขึ้นมาให้เห็นอีกหากรีเฟรชหรือกลับมาดูซ้ำ -->
-      <div id="voted-once-section" style="display:none;padding:28px 32px 0;text-align:center;border-bottom:1px solid var(--g100)">
-        <div id="voted-photo-wrap" style="width:88px;height:88px;border-radius:50%;overflow:hidden;margin:0 auto 14px;border:3px solid var(--g200);background:var(--g100)">
-          <img id="voted-photo" src="" alt="" style="width:100%;height:100%;object-fit:cover">
-        </div>
-        <div style="font-size:13px;color:var(--g500);margin-bottom:4px">คุณลงคะแนนให้</div>
-        <div id="voted-name" style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:2px"></div>
-        <div id="voted-party" style="font-size:13px;color:var(--g500);margin-bottom:16px"></div>
-        <div class="alert alert-warn" style="text-align:left;margin-bottom:24px;font-size:13px">
-          ⚠️ ข้อความนี้จะแสดงเพียงครั้งเดียวเท่านั้น เพื่อป้องกันการนำไปใช้เป็นหลักฐานบังคับหรือซื้อเสียง — รีเฟรชหรือกลับมาดูซ้ำจะไม่แสดงอีก
-        </div>
+      <div class="sx-photo" id="voted-once-section" style="display:none">
+        <div class="sx-pic" id="sx-pic"></div>
       </div>
-
-      <!-- Transaction info -->
-      <div style="padding:28px 32px">
-        <div style="font-size:12px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px">ข้อมูล Transaction</div>
-
-        <div style="margin-bottom:24px">
-          <div style="font-size:12px;color:var(--g500);margin-bottom:4px">Transaction Hash</div>
-          <div id="tx-hash" style="font-family:monospace;font-size:12px;background:var(--g50);border:1px solid var(--g200);border-radius:var(--r-md);padding:10px 14px;word-break:break-all;color:var(--navy)">-</div>
+      <div class="sx-info" id="sx-info">
+        <div id="voted-text" style="display:none">
+          <div class="sx-who">
+            <div class="sx-label">คุณลงคะแนนให้</div>
+            <div class="sx-name" id="voted-name"></div>
+            <div><span class="sx-party" id="voted-party"></span></div>
+            <p class="sx-slogan" id="voted-slogan"></p>
+          </div>
+          <div class="sx-note">
+            <p>ข้อมูลนี้แสดงครั้งเดียว เพื่อป้องกันการนำไปใช้เป็นหลักฐานบังคับหรือซื้อเสียง รีเฟรชหรือกลับมาดูซ้ำจะไม่แสดงอีก</p>
+            <button type="button" id="hide-btn">ซ่อนตอนนี้</button>
+          </div>
         </div>
-
-        <div style="display:flex;gap:12px">
-          <a href="/results.html" class="btn btn-primary" style="flex:1;justify-content:center">ดูผลคะแนน →</a>
-          <a href="/home.html" class="btn btn-ghost" style="flex:1;justify-content:center">กลับหน้าหลัก</a>
+        <div id="solo" class="sx-solo" style="display:none">
+          <div class="sx-stamp" style="--td:#047857">ใช้สิทธิ์แล้ว ✓</div>
+          <p style="color:var(--g500);font-size:14px">ข้อมูลผู้สมัครที่คุณเลือกแสดงได้เพียงครั้งเดียวและถูกลบไปแล้วเพื่อความเป็นส่วนตัว</p>
+        </div>
+        <div class="sx-sec">หลักฐานการลงคะแนน</div>
+        <div class="sx-hash"><code id="tx-hash">-</code><button type="button" id="copy-btn">คัดลอก</button></div>
+        <div id="block-info" style="margin-top:8px;font-size:12px;color:var(--g500)"></div>
+        <div class="sx-btns">
+          <a href="/results.html" class="btn btn-primary btn-lg">ดูผลคะแนน →</a>
+          <a href="/home.html" class="btn btn-ghost btn-lg">กลับหน้าหลัก</a>
         </div>
       </div>
     </div>
-
   </div>
 </div>
-
 <div id="toast-container" class="toast-wrap"></div>
 <script src="/js/main.js"></script>
 <script>
 const params=new URLSearchParams(location.search);
-const tx=params.get('tx');
-if(tx)document.getElementById('tx-hash').textContent=tx;
-
+const tx=params.get('tx')||'-', block=params.get('block');
+document.getElementById('tx-hash').textContent=tx;
+if(block&&block!=='undefined')document.getElementById('block-info').textContent=`บันทึกแล้วในบล็อก #${block}`;
+document.getElementById('copy-btn').onclick=async()=>{
+  try{await navigator.clipboard.writeText(tx);Toast.success('คัดลอกหมายเลขอ้างอิงแล้ว');}
+  catch(_){const r=document.createRange();r.selectNodeContents(document.getElementById('tx-hash'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);Toast.info('เลือกข้อความแล้ว กด ⌘/Ctrl + C เพื่อคัดลอก');}
+};
+(function(){
+  const cols=['#7c3aed','#f59e0b','#10b981','#2563eb','#ef4444','#ffffff'];let h='';
+  for(let i=0;i<46;i++)h+=`<i style="left:${Math.random()*100}%;top:${4+Math.random()*88}%;width:${6+Math.random()*7}px;height:${6+Math.random()*10}px;background:${cols[i%cols.length]};transform:rotate(${Math.floor(Math.random()*180)}deg);animation-delay:${Math.random()*.5}s"></i>`;
+  document.getElementById('sx-conf').innerHTML=h;
+})();
 // ★ โชว์ผู้สมัครที่เลือก "ครั้งเดียว" — getVotedCandidateOnce() มาจาก main.js จะลบข้อมูลทิ้งทันทีหลังอ่าน
-const voted = getVotedCandidateOnce();
-if (voted) {
-  document.getElementById('voted-once-section').style.display = 'block';
-  document.getElementById('voted-name').textContent  = voted.name || '';
-  document.getElementById('voted-party').textContent = voted.party || '';
-  const img = document.getElementById('voted-photo');
-  img.src = `/images/${voted.photo}`;
-  img.onerror = () => { img.closest('#voted-photo-wrap').outerHTML = `<div style="font-size:40px;margin-bottom:14px">${voted.emoji||'🗳️'}</div>`; };
+const voted=getVotedCandidateOnce();
+if(!voted){document.getElementById('solo').style.display='block';}
+else{
+  (async()=>{
+    const idFromPhoto=(String(voted.photo||'').match(/candidate-(\d+)\./)||[])[1];
+    let c=null;
+    try{const{candidates}=await api('/api/candidates');c=candidates.find(x=>(idFromPhoto&&x.id===+idFromPhoto)||x.name===voted.name)||null;}catch(_){}
+    const base=c||{id:idFromPhoto,name:voted.name,party:voted.party,photo:voted.photo,slogan:''};
+    const k=UBU_UI.teamKit(base);
+    const wrap=document.getElementById('voted-once-section');
+    wrap.style.cssText='display:block;'+UBU_UI.kitVars(k);
+    document.getElementById('sx-card').style.cssText=UBU_UI.kitVars(k);
+    document.getElementById('sx-pic').innerHTML=UBU_UI.photoImg(base)+(base.id?`<div class="sx-badge">หมายเลข ${UBU_UI.esc(base.id)}</div>`:'')+'<div class="sx-stamp">ใช้สิทธิ์แล้ว ✓</div>';
+    document.getElementById('voted-name').textContent=base.name||'';
+    document.getElementById('voted-party').textContent=base.party||'';
+    document.getElementById('voted-slogan').textContent=base.slogan?`"${base.slogan}"`:'';
+    document.getElementById('voted-text').style.display='block';
+    const btn=document.getElementById('hide-btn');
+    btn.onclick=()=>{const hid=document.getElementById('sx-card').classList.toggle('sx-hidden');btn.textContent=hid?'แสดงอีกครั้ง':'ซ่อนตอนนี้';};
+  })();
 }
 </script>
 </body></html>

@@ -21,29 +21,9 @@
       <p style="color:rgba(255,255,255,.55)">เลือกผู้สมัครที่คุณไว้วางใจได้ 1 คน</p>
     </div>
   </div>
-  <div style="padding:48px 0"><div class="container-sm">
-    <div id="vote-candidates" style="display:flex;flex-direction:column;gap:16px;margin-bottom:32px">
-      <div style="text-align:center;padding:40px;color:var(--g400)">กำลังโหลด...</div>
-    </div>
-    <div style="text-align:center">
-      <button id="vote-submit-btn" class="btn btn-primary btn-lg" onclick="openVoteConfirm()" disabled style="padding:16px 56px;font-size:17px;opacity:.45">ยืนยันการลงคะแนน</button>
-      <p style="color:var(--g400);font-size:13px;margin-top:12px">กรุณาเลือกผู้สมัครก่อนกดยืนยัน</p>
-    </div>
+  <div style="padding:40px 0 48px"><div class="container">
+    <div id="vote-candidates"><div style="text-align:center;padding:40px;color:var(--g400)">กำลังโหลด...</div></div>
   </div></div>
-</div>
-<div class="modal-overlay" id="vote-modal">
-  <div class="modal-box">
-    <div style="text-align:center;margin-bottom:22px">
-      <div style="font-size:52px;margin-bottom:14px">🗳️</div>
-      <h2 style="font-size:22px;font-weight:800;margin-bottom:8px">ยืนยันการลงคะแนน</h2>
-      <p style="color:var(--g500);font-size:14px">คะแนนจะถูกบันทึกบน Solidity Smart Contract ทันที</p>
-    </div>
-    <div class="alert alert-warn" style="margin-bottom:20px">⚠️ การลงคะแนนไม่สามารถเปลี่ยนแปลงได้ เมื่อบันทึกลง Blockchain แล้ว</div>
-    <div style="display:flex;gap:12px">
-      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('vote-modal')">ยกเลิก</button>
-      <button id="m-confirm-btn" class="btn btn-primary" style="flex:1;justify-content:center" onclick="submitVote()">ยืนยันการลงคะแนน ✓</button>
-    </div>
-  </div>
 </div>
 <div id="toast-container" class="toast-wrap"></div>
 <script src="/js/main.js"></script>

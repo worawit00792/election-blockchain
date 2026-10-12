@@ -79,20 +79,20 @@
 <div class="container">
   <div style="text-align:center;margin-bottom:48px">
     <h2 style="font-size:32px;font-weight:800;color:var(--navy)">วิธีการเลือกตั้ง</h2>
-    <p style="color:var(--g500);margin-top:8px">ง่าย โปร่งใส ปลอดภัยด้วย Solidity Smart Contract</p>
+    <p style="color:var(--g500);margin-top:8px">ง่าย โปร่งใส ปลอดภัย และตรวจสอบได้</p>
   </div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:22px">
     <div class="step-card"><div class="step-icon" style="background:#dbeafe">🔐</div><div class="step-num" style="color:var(--blue)">ขั้นตอนที่ 1</div><h3 style="font-size:20px;margin-bottom:8px">เข้าสู่ระบบ</h3><p style="color:var(--g500);font-size:14px">ใช้อีเมล @ubu.ac.th เพื่อยืนยันตัวตน</p></div>
     <div class="step-card"><div class="step-icon" style="background:#d1fae5">👤</div><div class="step-num" style="color:var(--green)">ขั้นตอนที่ 2</div><h3 style="font-size:20px;margin-bottom:8px">ดูผู้สมัคร</h3><p style="color:var(--g500);font-size:14px">ศึกษานโยบายและประวัติผู้สมัคร</p></div>
     <div class="step-card"><div class="step-icon" style="background:#fef3c7">🗳️</div><div class="step-num" style="color:var(--gold)">ขั้นตอนที่ 3</div><h3 style="font-size:20px;margin-bottom:8px">ลงคะแนน</h3><p style="color:var(--g500);font-size:14px">เลือกผู้สมัครที่คุณไว้วางใจ</p></div>
-    <div class="step-card"><div class="step-icon" style="background:#ede9fe">⛓️</div><div class="step-num" style="color:var(--purple)">ขั้นตอนที่ 4</div><h3 style="font-size:20px;margin-bottom:8px">บันทึก Blockchain</h3><p style="color:var(--g500);font-size:14px">Smart Contract บันทึกทันที ตรวจสอบได้</p></div>
+    <div class="step-card"><div class="step-icon" style="background:#ede9fe">🧾</div><div class="step-num" style="color:var(--purple)">ขั้นตอนที่ 4</div><h3 style="font-size:20px;margin-bottom:8px">รับหลักฐานการลงคะแนน</h3><p style="color:var(--g500);font-size:14px">คะแนนถูกบันทึกทันที พร้อมหมายเลขอ้างอิงให้ตรวจสอบ</p></div>
   </div>
 </div>
 </section>
 
 <footer style="background:var(--navy);padding:36px 0">
 <div class="container" style="text-align:center">
-  <p style="color:rgba(255,255,255,.28);font-size:13px">© 2570 การเลือกตั้งสภานักศึกษา มหาวิทยาลัยอุบลราชธานี &bull; Powered by Solidity Smart Contract</p>
+  <p style="color:rgba(255,255,255,.28);font-size:13px">© 2570 การเลือกตั้งสภานักศึกษา มหาวิทยาลัยอุบลราชธานี</p>
 </div>
 </footer>
 
@@ -101,7 +101,7 @@
 <script>
 api('/api/stats').then(d=>{
   const el=document.getElementById('total-votes-hero');if(el)el.textContent=d.totalVotes||0;
-  if(d.closingTime) startCountdown(d.closingTime,'countdown-home'); // ★ นับถอยหลังเวลาปิดรับคะแนน (ฟังก์ชันมาจาก main.js)
+  if(d.isOpen===false){const cd=document.getElementById('countdown-home'); if(cd) cd.textContent='ปิดรับคะแนนแล้ว';} else if(d.closingTime) startCountdown(d.closingTime,'countdown-home'); // ★ นับถอยหลังเวลาปิดรับคะแนน (ฟังก์ชันมาจาก main.js)
 }).catch(()=>{});
 </script>
 </body></html>

@@ -166,3 +166,143 @@ body{font-family:'Noto Sans Thai','Sarabun',sans-serif;background:var(--g50);col
   .stat-value{font-size:24px!important}
   h1{font-size:clamp(24px,8vw,32px)!important}
 }
+
+/* ── การ์ดผู้สมัคร (หน้าผู้สมัคร / หน้าหลัก) ใช้สีประจำทีมผ่านตัวแปร --tp (พื้นอ่อน) --ta (สีสด) --td (สีเข้ม) --tl (สีสว่าง) ── */
+.cand-card{background:#fff;border:1px solid var(--g200);border-radius:20px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;box-shadow:0 6px 24px rgba(15,23,42,.08);transition:transform .25s,box-shadow .25s}
+.cand-card:hover{transform:translateY(-6px);box-shadow:0 18px 48px rgba(15,23,42,.18)}
+.cand-photo,.vote-photo{position:relative;aspect-ratio:800/1050;overflow:hidden;background:radial-gradient(circle at 50% 38%,var(--tl) 0%,var(--tp) 72%)}
+.cand-photo::after,.vote-photo::after{content:"";position:absolute;left:0;right:0;bottom:0;height:30%;background:linear-gradient(to top,rgba(15,23,42,.22),transparent);pointer-events:none}
+.cand-badge,.vote-badge{position:absolute;z-index:2;top:14px;left:14px;background:var(--ta);color:#fff;font-size:13px;font-weight:800;padding:6px 14px;border-radius:999px;border:2px solid #fff;box-shadow:0 2px 8px rgba(15,23,42,.18)}
+.cand-arrow{position:absolute;z-index:2;right:14px;bottom:14px;width:44px;height:44px;border-radius:50%;background:var(--td);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;opacity:0;transform:translateX(-8px);transition:opacity .25s,transform .25s;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.cand-card:hover .cand-arrow{opacity:1;transform:none}
+.cand-info{padding:16px 18px 18px;flex:1;display:flex;flex-direction:column;background:#fff}
+.cand-name{font-size:20px;font-weight:800;color:var(--navy);line-height:1.25;transition:color .2s}
+.cand-card:hover .cand-name{color:var(--td)}
+.cand-party{display:inline-block;background:var(--tp);color:var(--td);font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;margin-top:6px}
+.cand-slogan{font-size:12.5px;color:var(--g500);margin:10px 0 0;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cand-btn{margin-top:14px;width:100%;padding:12px;border-radius:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;background:var(--navy);color:#fff;border:none;transition:background .2s}
+.cand-card:hover .cand-btn{background:var(--td)}
+
+/* ── หน้าลงคะแนน (การ์ดเลือก + แถบยืนยันด้านล่าง) ── */
+.vote-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.vote-card{position:relative;background:#fff;border:1px solid var(--g200);border-radius:20px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;box-shadow:0 6px 24px rgba(15,23,42,.08);transition:transform .2s,box-shadow .2s;outline:none;user-select:none;-webkit-user-select:none}
+.vote-card:hover{transform:translateY(-3px)}
+.vote-card:focus-visible{box-shadow:0 0 0 3px var(--ta)}
+.vote-card.selected{box-shadow:0 0 0 3px var(--ta),0 14px 36px rgba(15,23,42,.22);transform:translateY(-4px)}
+.vote-check{position:absolute;z-index:2;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.88);border:2px solid #cbd5e1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;transition:background .2s,border-color .2s}
+.vote-card.selected .vote-check{background:var(--ta);border-color:#fff}
+.vote-info{padding:16px 18px 18px;background:#fff;flex:1;transition:background .2s}
+.vote-card.selected .vote-info{background:var(--tp);background:color-mix(in srgb,var(--tp) 38%,#fff)}
+.vote-name{font-size:20px;font-weight:800;color:var(--navy);line-height:1.25}
+.vote-card.selected .vote-name{color:var(--td)}
+.vote-slogan{font-size:12.5px;color:var(--g500);margin:10px 0 0}
+.vote-bar{position:fixed;left:0;right:0;bottom:0;z-index:150;background:#0f172a;color:#fff;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;transform:translateY(110%);transition:transform .35s cubic-bezier(.2,.8,.2,1);box-shadow:0 -8px 30px rgba(15,23,42,.25)}
+.vote-bar.show{transform:none}
+.vb-who{display:flex;align-items:center;gap:14px;min-width:0}
+.vb-label{font-size:11px;color:#94a3b8}
+.vb-name{font-size:16px;font-weight:800}
+.vb-note{flex:1;max-width:380px;font-size:12px;color:#cbd5e1;line-height:1.5}
+.vb-hold{position:relative;overflow:hidden;background:#2563eb;color:#fff;border:none;border-radius:14px;padding:14px 30px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;white-space:nowrap;min-width:190px}
+.vb-hold:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}
+.vb-hold:disabled{opacity:.8;cursor:default}
+.vb-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.28);pointer-events:none}
+.vb-text{position:relative}
+body.has-vote-bar .page-body{padding-bottom:130px}
+@media (max-width:900px){
+  .vote-grid{grid-template-columns:repeat(2,1fr);gap:14px}
+  .vote-name,.cand-name{font-size:17px}
+  .vote-bar{flex-wrap:wrap;padding:12px 14px;gap:10px}
+  .vb-note{order:3;flex-basis:100%;max-width:none}
+  .vb-hold{min-width:0;flex:1;padding:13px 16px;font-size:14px}
+  body.has-vote-bar .page-body{padding-bottom:190px}
+}
+@media (max-width:560px){ .vote-slogan{display:none} }
+
+/* ── หน้าผลคะแนน: แบบสนามแข่ง ── */
+.res-actions{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+.btn-light{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.btn-light:hover{background:rgba(255,255,255,.2)}
+.race-mobile{display:none}
+.rl{margin-bottom:18px}
+.rl-row{display:flex;align-items:center;gap:20px;cursor:pointer;outline:none}
+.rl-row:focus-visible .rl-track{box-shadow:0 0 0 3px #93c5fd}
+.rl-rank{width:56px;text-align:center;font-size:40px;font-weight:800;color:#cbd5e1;line-height:1;flex-shrink:0}
+.rl-rank.first{font-size:52px;color:var(--ta)}
+.rl-track{flex:1;position:relative;height:104px;background:#f1f5f9;border-radius:52px;min-width:0}
+.rl-bar{position:absolute;left:0;top:0;bottom:0;min-width:310px;background:var(--ta);border-radius:52px;transition:width 1.1s cubic-bezier(.25,.8,.25,1)}
+.rl-bar.first{box-shadow:0 12px 34px color-mix(in srgb,var(--ta) 35%,transparent)}
+.rl-name{position:absolute;left:30px;top:50%;transform:translateY(-50%);color:#fff;max-width:calc(100% - 140px)}
+.rl-name .n{font-size:22px;font-weight:800;line-height:1.2}
+.rl-name .p{font-size:13px;opacity:.92}
+.rl-avatar{position:absolute;right:-6px;top:50%;transform:translateY(-50%)}
+.rl-crown{position:absolute;left:50%;top:-26px;transform:translateX(-50%);z-index:2}
+.rl-num{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:baseline;gap:14px;white-space:nowrap}
+.rl-num .v{font-size:34px;font-weight:800;color:#000;line-height:1}
+.rl-num .pc{font-size:14px;color:var(--g500)}
+.rl-num .gap{font-size:12px;font-weight:700;color:var(--td);background:var(--tp);padding:4px 10px;border-radius:999px}
+.rl-chev{width:28px;color:var(--g400);font-size:22px;transition:transform .2s;flex-shrink:0;text-align:center}
+.rl.open .rl-chev{transform:rotate(180deg)}
+.rl-detail{display:none;margin:12px 0 4px 76px}
+.rl.open .rl-detail,.rm.open .rl-detail{display:block}
+.rd-in{border:1px solid;border-radius:18px;padding:18px 20px}
+.rd-top{display:flex;gap:16px;align-items:center}
+.rd-t{font-size:13px;font-weight:700;color:var(--g500)}
+.rd-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.rd-chips span{background:#fff;border:1px solid;font-size:13px;color:var(--navy);padding:6px 12px;border-radius:999px}
+.rd-chips span.muted{color:var(--g400);border-color:var(--g200)}
+.rd-slogan{font-size:13px;color:var(--g500);margin:14px 0 0;font-style:italic}
+.rd-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+@media (max-width:1180px){ .rl-num .gap{display:none} }
+@media (max-width:980px){ .rl-num .pc{display:none} .rl-rank{width:40px;font-size:32px} .rl-rank.first{font-size:40px} }
+@media (max-width:760px){
+  .race-desktop{display:none}
+  .race-mobile{display:block}
+  .rm{background:#fff;border:1px solid var(--tp);border-radius:18px;padding:14px;margin-bottom:12px}
+  .rm.first{background:var(--tp);background:color-mix(in srgb,var(--tp) 45%,#fff);box-shadow:0 10px 28px color-mix(in srgb,var(--ta) 22%,transparent)}
+  .rm-row{display:flex;align-items:center;gap:12px;cursor:pointer;outline:none}
+  .rm-av{position:relative;flex-shrink:0}
+  .rm-rank{position:absolute;left:-6px;top:-6px;background:var(--ta);color:#fff;font-weight:800;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+  .rm-mid{flex:1;min-width:0}
+  .rm-mid .n{font-size:16px;font-weight:800;color:var(--navy)}
+  .rm-mid .p{font-size:12px;color:var(--g500)}
+  .rm-val{text-align:right}
+  .rm-val .v{font-size:22px;font-weight:800;color:#000;line-height:1}
+  .rm-val .pc{font-size:12px;color:var(--g500)}
+  .rm-bar{margin-top:10px;height:10px;background:#e2e8f0;border-radius:6px;overflow:hidden}
+  .rm-bar div{height:100%;background:var(--ta);border-radius:6px;transition:width 1.1s cubic-bezier(.25,.8,.25,1)}
+  .rl-detail{margin:12px 0 0}
+  .rd-top{flex-direction:column;align-items:flex-start}
+}
+
+/* ── โหมดประกาศผล (เต็มจอ) ── */
+.ann{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse 60% 70% at 50% 42%,#1e3a8a 0%,#0a1233 55%,#050b1f 100%);color:#fff;display:flex;flex-direction:column;overflow:hidden}
+.ann::before{content:"";position:absolute;left:50%;top:-40px;transform:translateX(-50%);width:760px;max-width:100%;height:90%;background:conic-gradient(from 180deg at 50% 0%,transparent 160deg,rgba(255,255,255,.14) 180deg,transparent 200deg);pointer-events:none}
+.ann-top{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:20px 32px;gap:16px}
+.ann-brand{display:flex;align-items:center;gap:12px}
+.ann-dots{display:flex;gap:8px}
+.ann-dots span{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.25)}
+.ann-dots span.done{background:#34d399}
+.ann-dots span.cur{width:26px;border-radius:99px;background:#f59e0b}
+.ann-x{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:10px;width:42px;height:42px;font-size:18px;cursor:pointer}
+.ann-stage{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:8px 24px;text-align:center;min-height:0}
+.ann-row{display:flex;gap:40px;justify-content:center;align-items:flex-end;flex-wrap:wrap;margin-top:14px}
+.ann-team{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ann-tn{font-size:clamp(26px,4vw,52px);font-weight:800;line-height:1.1}
+.ann-tv{font-size:clamp(34px,5.5vw,76px);font-weight:800;color:#93c5fd;line-height:1}
+.ann-tv small{font-size:clamp(14px,1.6vw,20px);color:rgba(255,255,255,.75);font-weight:400}
+.ann-badge{display:inline-flex;align-items:center;gap:10px;font-size:clamp(16px,2vw,22px);font-weight:800;letter-spacing:.1em;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);padding:8px 26px;border-radius:999px}
+.ann-badge.gold{color:#fde68a;background:rgba(245,158,11,.16);border-color:rgba(245,158,11,.55)}
+.ann-others{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.ann-chip{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:10px 16px;text-align:left}
+.ann-chip small{font-size:12px;opacity:.65;display:block}
+.ann-chip b{font-size:26px;margin-left:10px}
+.ann-ctl{position:relative;z-index:3;display:flex;justify-content:center;gap:12px;padding:16px 24px 24px;flex-wrap:wrap}
+.ann-btn{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:12px 22px;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
+.ann-btn.primary{background:#2563eb;border-color:#2563eb}
+.ann-btn:disabled{opacity:.35;cursor:default}
+.ann-pop{animation:annPop .6s cubic-bezier(.2,1.2,.3,1) both}
+.ann-conf-wrap{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.ann-conf{position:absolute;top:-20px;border-radius:2px;opacity:.9;animation:annFall linear infinite}
+@keyframes annPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+@keyframes annFall{from{transform:translateY(-4vh) rotate(0)}to{transform:translateY(112vh) rotate(540deg)}}
+@media (prefers-reduced-motion:reduce){ .ann-conf,.ann-pop{animation:none} .rl-bar,.rm-bar div{transition:none} }
