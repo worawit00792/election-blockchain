@@ -86,6 +86,16 @@ async function initBlockchain() {
       provider = new ethers.JsonRpcProvider(RPC_URL);
       wallet   = process.env.PRIVATE_KEY ? new ethers.Wallet(process.env.PRIVATE_KEY, provider) : await provider.getSigner(0);
     }
+    // แก้บั๊กโหวตพร้อมกัน: กระเป๋ากลางใบเดียวต้องส่งธุรกรรมให้ทุกคน (ค่าธรรมเนียมผู้โหวต / เพิ่มผู้สมัคร / ปิด-เปิด)
+    // ถ้าไม่จัดลำดับ nonce เอง ผู้โหวตหลายคนที่โหวตใกล้กันจะชนกัน ("nonce has already been used") และโหวตไม่สำเร็จ
+    const rawWallet = wallet, nm = new ethers.NonceManager(rawWallet), sendOnce = nm.sendTransaction.bind(nm);
+    let sendQueue = Promise.resolve();   // ส่งทีละธุรกรรมตามลำดับ (รอแค่ให้ส่งสำเร็จ ไม่รอให้ขุดบล็อก) กันธุรกรรมถึงโหนดสลับลำดับ
+    nm.sendTransaction = tx => {
+      const p = sendQueue.then(async () => { try { return await sendOnce(tx); } catch (e) { nm.reset(); throw e; } });   // ส่งไม่สำเร็จ → ล้างตัวนับ ไม่ให้ลำดับค้าง
+      sendQueue = p.catch(() => {});
+      return p;
+    };
+    wallet = nm;
     contract = new ethers.Contract(contractAddress, contractABI, wallet);
     console.log(`⛓️  Connected to blockchain: ${contractAddress}`);
     // Load saved extra data
@@ -182,6 +192,9 @@ app.post("/api/vote", requireLogin, async (req, res) => {
   const cid = parseInt(candidateId);
   if (!Number.isInteger(cid) || cid < 1 || isHidden(cid)) return res.status(400).json({ error: "ไม่พบผู้สมัครที่เลือก" });
   try {
+    // แก้ช่องโหว่เงินกระเป๋ากลางรั่ว: ตรวจก่อนโอนค่าธรรมเนียมให้ผู้โหวต (เดิมโอนก่อน แล้วค่อยถูกปฏิเสธ เสียเงินทุกครั้งที่กดซ้ำ)
+    if (!(await contract.isOpen())) return res.status(403).json({ error: "การเลือกตั้งปิดรับคะแนนแล้ว" });
+    if (cid > Number(await contract.candidateCount())) return res.status(400).json({ error: "ไม่พบผู้สมัครที่เลือก" });
     const hasVoted = await contract.hasEmailVoted(email);
     if (hasVoted) return res.status(403).json({ error: "คุณได้ลงคะแนนแล้ว" });
     const emailHash   = ethers.keccak256(ethers.toUtf8Bytes(email));
