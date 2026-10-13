@@ -85,6 +85,59 @@ const UBU_UI = (() => {
   return { teamKit, kitVars, mixW, shade, esc, hasCut, photoImg, avatar, policiesOf, CROWN };
 })();
 /* ── Navbar ─────────────────────────────────────────────── */
+/* วันที่รูปแบบไทย (พ.ศ.) จาก "YYYY-MM-DD"  เช่น 2026-10-05 → 5 ต.ค. 2569 */
+function fmtDateTH(ymd) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(ymd || ''); if (!m) return '';
+  const mon = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  return `${parseInt(m[3])} ${mon[parseInt(m[2]) - 1]} ${parseInt(m[1]) + 543}`;
+}
+/* ── เมนูบน + ฟุตเตอร์ (สร้างจากที่นี่ที่เดียว ใช้ร่วมกันทุกหน้า) ───────────── */
+let _siteInfoPromise = null;
+let _siteInfoCache = null;
+const yearSuffix = () => (_siteInfoCache && _siteInfoCache.year) ? ' ' + _siteInfoCache.year : '';
+function getSiteInfo() {                              // ข้อมูลหน้าเว็บที่ Admin กรอก (วันที่ เวลา อีเมล โซเชียล ปี) ว่างได้ทุกช่อง
+  if (!_siteInfoPromise) _siteInfoPromise = fetch('/api/site-info').then(r => r.ok ? r.json() : {}).catch(() => ({})).then(i => (_siteInfoCache = i));
+  return _siteInfoPromise;
+}
+const NAV_ITEMS = [
+  ['/home.html', 'หน้าแรก'], ['/info.html', 'ข้อมูลการเลือกตั้ง'], ['/candidates.html', 'ผู้สมัคร'],
+  ['/results.html', 'ผลการเลือกตั้ง'], ['/faq.html', 'คำถามที่พบบ่อย'],
+];
+function renderChrome() {
+  const host = document.getElementById('site-nav');
+  if (host) {
+    const p = location.pathname;
+    const isActive = h => p === h || (h === '/candidates.html' && p === '/candidate_detail.html') || (h === '/home.html' && p === '/news.html');
+    host.innerHTML = `
+    <nav class="navbar"><div class="container navbar-inner">
+      <a href="/home.html" class="nav-logo"><img src="/images/ubu-logo.png" alt="มหาวิทยาลัยอุบลราชธานี"><div><div class="logo-main">ระบบเลือกตั้ง</div><div class="logo-sub">มหาวิทยาลัยอุบลราชธานี</div></div></a>
+      <button class="nav-toggle" id="nav-toggle" aria-label="เปิดเมนู"><span></span><span></span><span></span></button>
+      <div class="nav-links" id="nav-links">
+        ${NAV_ITEMS.map(([h, t]) => `<a href="${h}" class="nav-link${isActive(h) ? ' active' : ''}">${t}</a>`).join('')}
+        <a href="/blockchain.html" class="nav-link blockchain-link" style="display:none">Blockchain</a>
+      </div>
+      <div id="nav-auth" class="nav-auth"></div>
+    </div></nav>`;
+  }
+  const f = document.getElementById('site-footer');
+  if (f) getSiteInfo().then(info => {
+    const esc = UBU_UI.esc, isUrl = u => /^https?:\/\//i.test(u || ''), isMail = e => /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(e || '');
+    const soc = [['facebook', 'f', 'Facebook'], ['youtube', '▶', 'YouTube'], ['instagram', '◎', 'Instagram']].filter(([k]) => isUrl(info[k]));
+    const contact = isMail(info.contactEmail) || info.contactOrg;
+    f.innerHTML = `
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <div class="sf-brand"><img src="/images/ubu-logo.png" alt=""><div><b>มหาวิทยาลัยอุบลราชธานี</b><span>Ubon Ratchathani University</span></div></div>
+        <div class="sf-mid"><b>“${esc(info.tagline || 'เสียงของคุณ สร้างอนาคตของเรา')}”</b><span>ระบบเลือกตั้งสภานักศึกษา มหาวิทยาลัยอุบลราชธานี${info.year ? ' ประจำปี ' + esc(info.year) : ''}</span></div>
+        <div class="sf-right">
+          ${soc.length ? `<div class="sf-social">${soc.map(([k, ic, nm]) => `<a href="${esc(info[k])}" target="_blank" rel="noopener noreferrer" aria-label="${nm}">${ic}</a>`).join('')}</div>` : ''}
+          ${contact ? `<div class="sf-contact">ติดต่อสอบถาม${info.contactOrg ? `<br>${esc(info.contactOrg)}` : ''}${isMail(info.contactEmail) ? `<br><a href="mailto:${esc(info.contactEmail)}">✉ ${esc(info.contactEmail)}</a>` : ''}</div>` : ''}
+        </div>
+      </div>
+      <div class="sf-links"><a href="/info.html">ข้อมูลการเลือกตั้ง</a><a href="/news.html">ข่าวสารและประกาศ</a><a href="/faq.html">คำถามที่พบบ่อย</a><a href="/blockchain.html">ตรวจสอบการบันทึกคะแนน</a></div>
+    </footer>`;
+  });
+}
 async function initNavbar() {
   const path = location.pathname;
   const nav = document.querySelector('.navbar');
@@ -134,9 +187,7 @@ async function initNavbar() {
         <a href="/vote.html" class="btn btn-primary btn-sm">ลงคะแนน</a>
         <button onclick="logout()" class="btn btn-sm" style="background:transparent;color:var(--g600);border:1.5px solid var(--g300)">ออกจากระบบ</button>`;
     } else {
-      authEl.innerHTML = `
-        <a href="/login.html" class="btn btn-sm" style="background:transparent;color:var(--navy);border:1.5px solid var(--g300)">เข้าสู่ระบบ</a>
-        <a href="/login.html" class="btn btn-primary btn-sm">ลงทะเบียน</a>`;
+      authEl.innerHTML = `<a href="/login.html" class="btn-login">👤 เข้าสู่ระบบ</a>`;
     }
   } catch(e) {}
 }
@@ -167,6 +218,7 @@ async function loadCandidates(containerId) {
         </div>
       </div>`;
     }).join('');
+    const cc = document.getElementById('cand-count'); if (cc) cc.textContent = `${candidates.length} ทีมผู้สมัครแข่งขัน`;
   } catch(e) { console.error(e); }
 }
 /* ── Vote ───────────────────────────────────────────────── */
@@ -603,7 +655,7 @@ function openAnnounce() {
   const ov = document.createElement('div');
   ov.className = 'ann'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'โหมดประกาศผล');
   ov.innerHTML = `
-    <div class="ann-top"><div class="ann-brand"><img src="/images/ubu-logo.png" alt="" style="height:42px"><div><div style="font-weight:800;font-size:16px">ประกาศผลการเลือกตั้งสภานักศึกษา</div><div style="font-size:12px;opacity:.6">มหาวิทยาลัยอุบลราชธานี 2570</div></div></div><div class="ann-dots" id="ann-dots"></div><button class="ann-x" id="ann-close" type="button" aria-label="ปิดโหมดประกาศผล">✕</button></div>
+    <div class="ann-top"><div class="ann-brand"><img src="/images/ubu-logo.png" alt="" style="height:42px"><div><div style="font-weight:800;font-size:16px">ประกาศผลการเลือกตั้งสภานักศึกษา</div><div style="font-size:12px;opacity:.6">มหาวิทยาลัยอุบลราชธานี${yearSuffix()}</div></div></div><div class="ann-dots" id="ann-dots"></div><button class="ann-x" id="ann-close" type="button" aria-label="ปิดโหมดประกาศผล">✕</button></div>
     <div class="ann-stage" id="ann-stage"></div>
     <div class="ann-ctl"><button class="ann-btn" id="ann-prev" type="button">◀ ก่อนหน้า</button><button class="ann-btn primary" id="ann-next" type="button">ถัดไป ▶</button><button class="ann-btn" id="ann-auto" type="button">เล่นอัตโนมัติ</button><button class="ann-btn" id="ann-full" type="button">เต็มจอ</button></div>`;
   document.body.appendChild(ov); document.body.style.overflow = 'hidden';
@@ -666,7 +718,7 @@ async function shareResultImage() {
   const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#0f172a'); bg.addColorStop(1, '#1e3a8a');
   g.fillStyle = bg; g.fillRect(0, 0, W, H);
   g.textAlign = 'center'; g.fillStyle = '#fff'; g.font = `800 56px ${FONT}`; g.fillText('ผลการเลือกตั้งสภานักศึกษา', W / 2, 120);
-  g.fillStyle = 'rgba(255,255,255,.7)'; g.font = `400 32px ${FONT}`; g.fillText('มหาวิทยาลัยอุบลราชธานี 2570', W / 2, 170);
+  g.fillStyle = 'rgba(255,255,255,.7)'; g.font = `400 32px ${FONT}`; g.fillText('มหาวิทยาลัยอุบลราชธานี' + yearSuffix(), W / 2, 170);
   async function drawAvatar(c, cx, cy, r) {
     const k = UBU_UI.teamKit(c);
     g.save();
@@ -724,20 +776,14 @@ async function loadBlockchain() {
       if (addrEl) addrEl.textContent = contractAddress;
     }
     container.innerHTML = blocks.map(b => `
-      <div style="background:var(--navy-mid);border:1px solid rgba(37,99,235,.22);border-radius:var(--r-lg);padding:24px 28px;margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:16px">
-          <span style="background:rgba(37,99,235,.18);color:var(--blue-glow);font-size:13px;font-weight:700;padding:5px 14px;border-radius:7px">Block #${b.number}</span>
-          <span style="color:rgba(255,255,255,.3);font-size:12px">${b.timestamp}</span>
+      <div class="bc-block">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+          <span class="bc-badge">บล็อกที่ #${b.number}</span>
+          <span style="color:#64748b;font-size:12px">${new Date(b.timestamp).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'medium' })}</span>
         </div>
-        <div style="margin-bottom:10px">
-          <div style="color:rgba(255,255,255,.3);font-size:10px;margin-bottom:5px">Block Hash</div>
-          <div style="font-family:monospace;font-size:11px;word-break:break-all;padding:9px 14px;border-radius:6px;background:rgba(16,185,129,.07);color:#34d399">${b.hash}</div>
-        </div>
-        <div>
-          <div style="color:rgba(255,255,255,.3);font-size:10px;margin-bottom:5px">Parent Hash</div>
-          <div style="font-family:monospace;font-size:11px;word-break:break-all;padding:9px 14px;border-radius:6px;background:rgba(37,99,235,.08);color:var(--blue-glow)">${b.parentHash}</div>
-        </div>
-        <div style="margin-top:10px;color:rgba(255,255,255,.4);font-size:13px">Transactions: ${b.txCount}</div>
+        <div class="bc-k">รหัสของบล็อก (Block Hash)</div><div class="bc-hash">${b.hash}</div>
+        <div class="bc-k" style="margin-top:10px">รหัสของบล็อกก่อนหน้า (Parent Hash)</div><div class="bc-hash">${b.parentHash}</div>
+        <div style="margin-top:10px;color:#475569;font-size:13px">จำนวนรายการในบล็อก: ${b.txCount}</div>
       </div>`
     ).join('');
   } catch(e) { console.error(e); }
@@ -748,6 +794,7 @@ function closeModal(id) { document.getElementById(id)?.classList.remove('open');
 document.addEventListener('click',e=>{ if(e.target.classList.contains('modal-overlay')) closeModal(e.target.id); });
 /* ── DOMContentLoaded ────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
+  renderChrome();
   initNavbar();
   const page = document.body.dataset.page;
   if (page==='home')       loadCandidates('candidates-grid');

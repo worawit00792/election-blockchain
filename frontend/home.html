@@ -2,106 +2,135 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>หน้าหลัก – เลือกตั้งสภานักศึกษา มหาวิทยาลัยอุบลราชธานี 2570</title>
+<title>ระบบเลือกตั้ง – สภานักศึกษา มหาวิทยาลัยอุบลราชธานี</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body data-page="home">
-<nav class="navbar"><div class="container navbar-inner">
-  <a href="/home.html" class="nav-logo">
-    <img src="/images/ubu-logo.png" alt="UBU" style="height:48px;width:auto;object-fit:contain">
-    <div><div class="logo-main">เลือกตั้งสภานักศึกษา</div><div class="logo-sub">มหาวิทยาลัยอุบลราชธานี 2570</div></div>
-  </a>
-  <button class="nav-toggle" id="nav-toggle" aria-label="เปิดเมนู"><span></span><span></span><span></span></button>
-  <div class="nav-links" id="nav-links">
-    <a href="/home.html" class="nav-link active">หน้าหลัก</a>
-    <a href="/candidates.html" class="nav-link">ผู้สมัคร</a>
-    <a href="/results.html" class="nav-link">ผลคะแนน</a>
-    <a href="/blockchain.html" class="nav-link blockchain-link" style="display:none">Blockchain</a>
-  </div>
-  <div id="nav-auth" class="nav-auth"></div>
-</div></nav>
-
-<section class="hero page-body">
-  <div class="hero-grid"></div>
-  <div class="hero-glow hero-gl1"></div>
-  <div class="hero-glow hero-gl2"></div>
-  <div style="position:absolute;inset:0;z-index:1">
-    <img src="/images/hero-candidates.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;opacity:0.55">
-    <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,22,40,.92) 0%,rgba(10,22,40,.75) 40%,rgba(10,22,40,.2) 65%,transparent 100%)"></div>
-  </div>
-  <div class="container" style="width:100%;position:relative;z-index:2">
-    <div class="r-sidebar" style="display:grid;grid-template-columns:1fr 320px;gap:36px;align-items:center;padding:32px 0 36px">
-      <div style="max-width:500px">
-        <div class="hero-eyebrow"><div class="hero-eyebrow-dot"></div><span>เปิดรับลงคะแนน 1 – 7 มิถุนายน 2570</span></div>
-        <h1 style="color:#fff;font-size:54px;font-weight:900;line-height:1.15;margin-bottom:16px">อนาคตของเรา<br><span style="background:linear-gradient(135deg,#93c5fd,#60a5fa,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">เริ่มต้นที่เสียงของคุณ</span></h1>
-        <p style="color:rgba(255,255,255,.75);font-size:15px;line-height:1.7;margin-bottom:22px">ร่วมกันสร้างมหาวิทยาลัยที่ดีกว่า ด้วยการเลือกตัวแทนที่มีวิสัยทัศน์</p>
-        <a href="/login.html?next=/vote.html" id="hero-vote-btn" class="btn btn-primary" style="padding:12px 28px;font-size:15px">ลงคะแนนเลยตอนนี้</a>
+<div id="site-nav"></div>
+<div class="page-body">
+  <div class="hm-grid" id="hm-grid">
+    <section class="hm-hero" id="hm-hero">
+      <svg class="hm-hero-waves" viewBox="0 0 900 330" preserveAspectRatio="none" aria-hidden="true"><path d="M0 250 C200 200 350 290 560 245 C720 215 820 250 900 225 L900 330 L0 330Z" fill="#cfe1fb" opacity=".7"/><path d="M0 285 C220 250 420 310 640 280 C760 262 840 280 900 270 L900 330 L0 330Z" fill="#b9d3f7" opacity=".6"/><circle cx="640" cy="70" r="60" fill="#fff" opacity=".5"/></svg>
+      <div class="hm-hero-text">
+        <h1>เลือกตั้งสภานักศึกษา<br>มหาวิทยาลัยอุบลราชธานี</h1>
+        <p class="hm-hero-sub">ร่วมเป็นส่วนหนึ่งในการพัฒนามหาวิทยาลัย<br>เลือกตั้งวันนี้ เพื่ออนาคตที่ดีกว่า</p>
+        <div class="hm-meta" id="hm-meta" style="display:none"></div>
+        <a href="/login.html?next=/vote.html" class="hm-cta" id="hm-cta">🗳️ เข้าสู่ระบบเพื่อไปใช้สิทธิ์ →</a>
       </div>
-      <div style="background:rgba(10,22,40,.78);border:1px solid rgba(255,255,255,.12);border-radius:var(--r-xl);padding:18px 20px;backdrop-filter:blur(16px)">
-        <div style="color:#fff;font-size:15px;font-weight:800;margin-bottom:14px">ภาพรวมการเลือกตั้ง</div>
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)">
-          <div style="width:34px;height:34px;border-radius:9px;background:rgba(37,99,235,.2);display:flex;align-items:center;justify-content:center">👥</div>
-          <div><div style="color:#fff;font-size:20px;font-weight:800">4</div><div style="color:rgba(255,255,255,.4);font-size:11px">ผู้สมัครทั้งหมด</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)">
-          <div style="width:34px;height:34px;border-radius:9px;background:rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center">✅</div>
-          <div><div style="color:#fff;font-size:20px;font-weight:800">2,450</div><div style="color:rgba(255,255,255,.4);font-size:11px">นักศึกษามีสิทธิ์ลงคะแนน</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)">
-          <div style="width:34px;height:34px;border-radius:9px;background:rgba(245,158,11,.2);display:flex;align-items:center;justify-content:center">🗳️</div>
-          <div><div style="color:#fff;font-size:20px;font-weight:800" id="total-votes-hero">0</div><div style="color:rgba(255,255,255,.4);font-size:11px">ลงคะแนนแล้ว</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
-          <div style="width:34px;height:34px;border-radius:9px;background:rgba(124,58,237,.2);display:flex;align-items:center;justify-content:center">⏳</div>
-          <div><div style="color:#fff;font-size:15px;font-weight:800" id="countdown-home">ยังไม่กำหนด</div><div style="color:rgba(255,255,255,.4);font-size:11px">ปิดรับคะแนนใน</div></div>
-        </div>
+      <svg class="hm-art" viewBox="0 0 360 330" aria-hidden="true"><ellipse cx="190" cy="304" rx="140" ry="16" fill="#1e3a8a" opacity=".13"/><polygon points="70,120 250,120 300,92 120,92" fill="#f3f7ff"/><polygon points="70,120 250,120 250,290 70,290" fill="#ffffff"/><polygon points="250,120 300,92 300,262 250,290" fill="#dbe7fb"/><g transform="rotate(-10 205 68)"><rect x="150" y="14" width="96" height="104" rx="8" fill="#fff" stroke="#c7d6f2"/><rect x="170" y="38" width="46" height="46" rx="7" fill="#eaf1ff" stroke="#1d5fd1" stroke-width="3"/><path d="M180 62 l10 11 l20 -24" fill="none" stroke="#1d5fd1" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g><image href="/images/ubu-logo.png" x="105" y="150" width="76" height="92"/><text x="143" y="268" text-anchor="middle" font-size="9" font-weight="700" fill="#12306b" font-family="sans-serif">มหาวิทยาลัยอุบลราชธานี</text></svg>
+    </section>
+
+    <aside class="hm-card hm-count" id="hm-count">
+      <div>
+        <h3>📅 เหลือเวลาอีก</h3>
+        <div id="hm-cd-area"><div class="hm-state"><b>กำลังโหลด...</b></div></div>
+        <div class="hm-voters" id="hm-voters"></div>
       </div>
+      <div>
+        <div class="hm-ann-title">📢 ประกาศสำคัญ</div>
+        <div id="hm-ann"></div>
+      </div>
+    </aside>
+
+    <div class="hm-left" id="hm-left">
+      <div class="hm-quick">
+        <a class="hm-card hm-q" href="/blockchain.html"><div class="hm-q-top"><div class="hm-q-ic" style="background:#dbeafe">🧾</div><span class="hm-q-go">→</span></div><div><div class="hm-q-t">ตรวจสอบหลักฐานคะแนน</div><div class="hm-q-d">ใช้หมายเลขอ้างอิงตรวจว่าคะแนนถูกบันทึกจริง</div></div></a>
+        <a class="hm-card hm-q" href="/candidates.html"><div class="hm-q-top"><div class="hm-q-ic" style="background:#d1fae5">👥</div><span class="hm-q-go">→</span></div><div><div class="hm-q-t">ดูรายชื่อผู้สมัคร</div><div class="hm-q-d">ข้อมูลผู้สมัครและนโยบายของแต่ละทีม</div></div></a>
+        <a class="hm-card hm-q" href="/info.html#steps"><div class="hm-q-top"><div class="hm-q-ic" style="background:#e9e3ff">📋</div><span class="hm-q-go">→</span></div><div><div class="hm-q-t">ขั้นตอนการเลือกตั้ง</div><div class="hm-q-d">ศึกษาขั้นตอนและวิธีใช้สิทธิ์อย่างละเอียด</div></div></a>
+        <a class="hm-card hm-q" href="/faq.html"><div class="hm-q-top"><div class="hm-q-ic" style="background:#fef3c7">❓</div><span class="hm-q-go">→</span></div><div><div class="hm-q-t">คำถามที่พบบ่อย</div><div class="hm-q-d">รวมคำถามและคำตอบเกี่ยวกับการเลือกตั้ง</div></div></a>
+      </div>
+      <section class="hm-card hm-cands" id="hm-cands" style="display:none">
+        <div class="hm-cands-head"><h3>👥 ผู้สมัครรับเลือกตั้ง</h3><a href="/candidates.html">ดูผู้สมัครทั้งหมด →</a></div>
+        <div class="hm-strip-wrap"><div class="hm-strip" id="hm-strip"></div><button class="hm-arrow l" id="hm-prev" aria-label="ก่อนหน้า" type="button">‹</button><button class="hm-arrow r" id="hm-next" aria-label="ถัดไป" type="button">›</button></div>
+      </section>
     </div>
-  </div>
-</section>
 
-<section style="padding:48px 0 64px;background:#fff">
-<div class="container">
-  <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:40px;flex-wrap:wrap;gap:16px">
-    <div>
-      <h2 style="font-size:32px;font-weight:800;color:var(--navy);margin-bottom:6px">ผู้สมัครทั้งหมด</h2>
-      <p style="color:var(--g500);font-size:15px">เลือกดูผู้สมัครและนโยบายของแต่ละทีม</p>
-    </div>
-  </div>
-  <div id="candidates-grid" class="r-grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
-    <div style="text-align:center;padding:40px;color:var(--g400)">กำลังโหลด...</div>
+    <aside class="hm-card hm-news" id="hm-news">
+      <div class="hm-news-head"><h3>📰 ข่าวสาร / ประชาสัมพันธ์</h3><a href="/news.html?type=news">ดูทั้งหมด</a></div>
+      <div class="hm-news-list" id="hm-news-list"><div class="hm-n-empty">กำลังโหลด...</div></div>
+    </aside>
   </div>
 </div>
-</section>
-
-<section style="padding:64px 0;background:var(--g50)">
-<div class="container">
-  <div style="text-align:center;margin-bottom:48px">
-    <h2 style="font-size:32px;font-weight:800;color:var(--navy)">วิธีการเลือกตั้ง</h2>
-    <p style="color:var(--g500);margin-top:8px">ง่าย โปร่งใส ปลอดภัย และตรวจสอบได้</p>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:22px">
-    <div class="step-card"><div class="step-icon" style="background:#dbeafe">🔐</div><div class="step-num" style="color:var(--blue)">ขั้นตอนที่ 1</div><h3 style="font-size:20px;margin-bottom:8px">เข้าสู่ระบบ</h3><p style="color:var(--g500);font-size:14px">ใช้อีเมล @ubu.ac.th เพื่อยืนยันตัวตน</p></div>
-    <div class="step-card"><div class="step-icon" style="background:#d1fae5">👤</div><div class="step-num" style="color:var(--green)">ขั้นตอนที่ 2</div><h3 style="font-size:20px;margin-bottom:8px">ดูผู้สมัคร</h3><p style="color:var(--g500);font-size:14px">ศึกษานโยบายและประวัติผู้สมัคร</p></div>
-    <div class="step-card"><div class="step-icon" style="background:#fef3c7">🗳️</div><div class="step-num" style="color:var(--gold)">ขั้นตอนที่ 3</div><h3 style="font-size:20px;margin-bottom:8px">ลงคะแนน</h3><p style="color:var(--g500);font-size:14px">เลือกผู้สมัครที่คุณไว้วางใจ</p></div>
-    <div class="step-card"><div class="step-icon" style="background:#ede9fe">🧾</div><div class="step-num" style="color:var(--purple)">ขั้นตอนที่ 4</div><h3 style="font-size:20px;margin-bottom:8px">รับหลักฐานการลงคะแนน</h3><p style="color:var(--g500);font-size:14px">คะแนนถูกบันทึกทันที พร้อมหมายเลขอ้างอิงให้ตรวจสอบ</p></div>
-  </div>
-</div>
-</section>
-
-<footer style="background:var(--navy);padding:36px 0">
-<div class="container" style="text-align:center">
-  <p style="color:rgba(255,255,255,.28);font-size:13px">© 2570 การเลือกตั้งสภานักศึกษา มหาวิทยาลัยอุบลราชธานี</p>
-</div>
-</footer>
-
+<div id="site-footer"></div>
 <div id="toast-container" class="toast-wrap"></div>
 <script src="/js/main.js"></script>
 <script>
-api('/api/stats').then(d=>{
-  const el=document.getElementById('total-votes-hero');if(el)el.textContent=d.totalVotes||0;
-  if(d.isOpen===false){const cd=document.getElementById('countdown-home'); if(cd) cd.textContent='ปิดรับคะแนนแล้ว';} else if(d.closingTime) startCountdown(d.closingTime,'countdown-home'); // ★ นับถอยหลังเวลาปิดรับคะแนน (ฟังก์ชันมาจาก main.js)
-}).catch(()=>{});
+(async function(){
+  const esc = UBU_UI.esc;
+  const [info, stats, me, annRes, newsRes, candRes] = await Promise.all([
+    getSiteInfo(),
+    api('/api/stats').catch(() => null),
+    api('/api/me').catch(() => ({ loggedIn: false })),
+    fetch('/api/announcements?type=announce&limit=2').then(r => r.json()).catch(() => ({ items: [] })),
+    fetch('/api/announcements?type=news&limit=4').then(r => r.json()).catch(() => ({ items: [] })),
+    api('/api/candidates').catch(() => ({ candidates: [] })),
+  ]);
+  const isOpen = !stats || stats.isOpen !== false;
+
+  // วันที่/เวลาเลือกตั้ง: แสดงเฉพาะช่องที่ Admin กรอกไว้
+  const meta = [];
+  if (info.electionDate) meta.push(`<div><span style="font-size:26px">📅</span><div><small>วันที่เลือกตั้ง</small><b>${esc(info.electionDate)}</b></div></div>`);
+  if (info.electionTime) meta.push(`<div><span style="font-size:26px">🕗</span><div><small>เวลา</small><b>${esc(info.electionTime)}</b></div></div>`);
+  if (meta.length) { const m = document.getElementById('hm-meta'); m.innerHTML = meta.join(''); m.style.display = 'flex'; }
+
+  // ปุ่มหลักตามสถานะผู้ใช้และการเลือกตั้ง
+  const cta = document.getElementById('hm-cta');
+  if (!isOpen) { cta.href = '/results.html'; cta.textContent = '📊 ดูผลคะแนน →'; }
+  else if (!me.loggedIn) { cta.href = '/login.html?next=/vote.html'; cta.textContent = '🗳️ เข้าสู่ระบบเพื่อไปใช้สิทธิ์ →'; }
+  else if (me.hasVoted) { cta.href = '/results.html'; cta.textContent = '✅ คุณใช้สิทธิ์แล้ว ดูผลคะแนน →'; }
+  else { cta.href = '/vote.html'; cta.textContent = '🗳️ ลงคะแนนเลย →'; }
+
+  // นับถอยหลัง / สถานะ
+  const area = document.getElementById('hm-cd-area');
+  const state = (t, s) => { area.innerHTML = `<div class="hm-state"><b>${t}</b><span>${s}</span></div>`; };
+  let timer = null;
+  function renderCountdown() {
+    if (!stats) return state('ไม่สามารถโหลดสถานะได้', 'กรุณารีเฟรชหน้าอีกครั้ง');
+    if (!isOpen) return state('ปิดรับคะแนนแล้ว', 'ดูผลคะแนนได้ที่หน้า "ผลการเลือกตั้ง"');
+    if (!stats.closingTime) return state('เปิดรับคะแนนอยู่', 'ยังไม่กำหนดเวลาปิดรับ');
+    const end = Date.parse(stats.closingTime);
+    area.innerHTML = '<div class="hm-cd"><div><b id="cd-d">00</b><span>วัน</span></div><div><b id="cd-h">00</b><span>ชั่วโมง</span></div><div><b id="cd-m">00</b><span>นาที</span></div><div><b id="cd-s">00</b><span>วินาที</span></div></div>';
+    const set = (id, v) => { document.getElementById(id).textContent = String(v).padStart(2, '0'); };
+    const tick = () => {
+      const ms = end - Date.now();
+      if (ms <= 0) { clearInterval(timer); state('ถึงเวลาปิดรับคะแนนแล้ว', 'กำลังปิดรับคะแนน...'); setTimeout(() => location.reload(), 4000); return; }
+      const s = Math.floor(ms / 1000);
+      set('cd-d', Math.floor(s / 86400)); set('cd-h', Math.floor(s % 86400 / 3600)); set('cd-m', Math.floor(s % 3600 / 60)); set('cd-s', s % 60);
+    };
+    tick(); timer = setInterval(tick, 1000);
+  }
+  renderCountdown();
+  if (stats) document.getElementById('hm-voters').innerHTML = `ผู้ใช้สิทธิ์แล้ว <b>${(stats.totalVotes || 0).toLocaleString('th-TH')}</b> คน`;
+
+  // ประกาศสำคัญ (ล่าสุด 2 รายการ)
+  const annBox = document.getElementById('hm-ann'), anns = annRes.items || [];
+  annBox.innerHTML = anns.length
+    ? anns.map(a => `<a class="hm-row" href="/news.html?id=${esc(a.id)}"><div style="min-width:0"><div class="hm-row-t">${esc(a.title)}</div><div class="hm-row-d">${esc(fmtDateTH(a.date))}</div></div><span class="hm-row-go">›</span></a>`).join('') + '<a class="hm-more" href="/news.html?type=announce"><span>ดูประกาศทั้งหมด</span><span>›</span></a>'
+    : '<div class="hm-empty">ยังไม่มีประกาศ</div>';
+
+  // ข่าวสาร (ล่าสุด 4 รายการ เต็มกล่องพอดี)
+  const nl = document.getElementById('hm-news-list'), news = newsRes.items || [];
+  if (!news.length) nl.innerHTML = '<div class="hm-n-empty"><b>📰</b>ยังไม่มีข่าวสาร<span style="font-size:12px">ข่าวใหม่จะปรากฏที่นี่</span></div>';
+  else {
+    nl.innerHTML = news.map(n => `<a class="hm-n" href="/news.html?id=${esc(n.id)}"><div class="hm-n-img">${n.image ? `<img src="${esc(n.image)}" alt="" loading="lazy">` : '📰'}</div><div style="min-width:0"><div class="hm-row-t">${esc(n.title)}</div><div class="hm-row-d">${esc(fmtDateTH(n.date))}</div></div></a>`).join('')
+      + (news.length < 4 ? '<a class="hm-n-fill" href="/news.html?type=news">ดูข่าวสารทั้งหมด →</a>' : '');
+  }
+
+  // แถบผู้สมัคร
+  const cands = candRes.candidates || [];
+  if (cands.length) {
+    document.getElementById('hm-cands').style.display = '';
+    document.getElementById('hm-strip').innerHTML = cands.map(c => {
+      const k = UBU_UI.teamKit(c), pol = UBU_UI.policiesOf(c).slice(0, 2).join(' / ');
+      return `<a class="hm-cand" href="/candidate_detail.html?id=${c.id}">${UBU_UI.avatar(c, 60, false)}<div style="min-width:0"><span class="hm-cand-no" style="background:${k.a}">เบอร์ ${c.id}</span><div class="hm-cand-n">${esc(c.name)}</div><div class="hm-cand-p">${esc(c.party)}</div>${pol ? `<div class="hm-cand-pol"><b>นโยบาย:</b> ${esc(pol)}</div>` : ''}</div></a>`;
+    }).join('');
+    const strip = document.getElementById('hm-strip'), prev = document.getElementById('hm-prev'), next = document.getElementById('hm-next');
+    const upd = () => { const over = strip.scrollWidth > strip.clientWidth + 4; prev.style.display = over && strip.scrollLeft > 4 ? 'flex' : 'none'; next.style.display = over && strip.scrollLeft + strip.clientWidth < strip.scrollWidth - 4 ? 'flex' : 'none'; };
+    prev.onclick = () => strip.scrollBy({ left: -strip.clientWidth * .8, behavior: 'smooth' });
+    next.onclick = () => strip.scrollBy({ left: strip.clientWidth * .8, behavior: 'smooth' });
+    strip.addEventListener('scroll', upd, { passive: true }); window.addEventListener('resize', upd); upd();
+  }
+})();
 </script>
 </body></html>

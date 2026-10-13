@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ข่าวสารและประกาศ – ระบบเลือกตั้ง มหาวิทยาลัยอุบลราชธานี</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="news">
+<div id="site-nav"></div>
+<div class="page-body">
+  <div class="page-band"><div class="container-md"><h1>ข่าวสารและประกาศ</h1><p>ติดตามความเคลื่อนไหวของการเลือกตั้ง</p></div></div>
+  <div style="padding:24px 0 8px"><div class="container-md">
+    <div class="nw-tabs" role="tablist" aria-label="ประเภท"><button type="button" role="tab" data-t="all" class="active">ทั้งหมด</button><button type="button" role="tab" data-t="announce">ประกาศสำคัญ</button><button type="button" role="tab" data-t="news">ข่าวสาร</button></div>
+    <div id="nw-note"></div>
+    <div id="nw-list"><div style="text-align:center;padding:40px;color:var(--g400)">กำลังโหลด...</div></div>
+  </div></div>
+</div>
+<div id="site-footer"></div>
+<div id="toast-container" class="toast-wrap"></div>
+<script src="/js/main.js"></script>
+<script>
+(async function () {
+  const esc = UBU_UI.esc, params = new URLSearchParams(location.search);
+  let tab = ['announce', 'news'].includes(params.get('type')) ? params.get('type') : 'all', openId = params.get('id');
+  let items = [];
+  try {
+    const d = await (await fetch('/api/announcements?limit=200')).json(); items = d.items || [];
+    if (d.degraded) document.getElementById('nw-note').innerHTML = '<div class="nw-warn">โหลดข่าวสารไม่สำเร็จชั่วคราว กรุณารีเฟรชหน้าอีกครั้ง</div>';
+  } catch (e) { document.getElementById('nw-note').innerHTML = '<div class="nw-warn">โหลดข่าวสารไม่สำเร็จ กรุณารีเฟรชหน้าอีกครั้ง</div>'; }
+  const target = openId && items.find(i => i.id === openId);
+  if (target && tab !== 'all' && target.type !== tab) tab = 'all';
+  function render() {
+    document.querySelectorAll('.nw-tabs button').forEach(b => { const on = b.dataset.t === tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    const list = items.filter(i => tab === 'all' || i.type === tab);
+    document.getElementById('nw-list').innerHTML = list.length ? list.map(i => {
+      const long = (i.body || '').length > 160, open = i.id === openId;
+      return `<article class="nw-card${open ? ' open' : ''}" id="n-${esc(i.id)}">
+        ${i.image ? `<div class="nw-img"><img src="${esc(i.image)}" alt="" loading="lazy"></div>` : ''}
+        <div class="nw-main">
+          <div class="nw-meta"><span class="nw-chip ${i.type}">${i.type === 'announce' ? 'ประกาศสำคัญ' : 'ข่าวสาร'}</span><span>${esc(fmtDateTH(i.date))}</span></div>
+          <h2 class="nw-title">${esc(i.title)}</h2>
+          ${i.body ? `<p class="nw-body">${esc(i.body)}</p>` : ''}
+          ${long ? `<button type="button" class="nw-more" data-id="${esc(i.id)}">${open ? 'ย่อ ▲' : 'อ่านต่อ ▼'}</button>` : ''}
+        </div></article>`;
+    }).join('') : '<div class="nw-empty"><b>📰</b>ยังไม่มีรายการในหมวดนี้</div>';
+    document.querySelectorAll('.nw-more').forEach(b => b.onclick = () => { const id = b.dataset.id; openId = openId === id ? null : id; render(); });
+  }
+  document.querySelectorAll('.nw-tabs button').forEach(b => b.onclick = () => { tab = b.dataset.t; openId = null; history.replaceState(null, '', tab === 'all' ? '/news.html' : '/news.html?type=' + tab); render(); });
+  render();
+  if (target) setTimeout(() => { const el = document.getElementById('n-' + target.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200);
+})();
+</script>
+</body></html>

@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Admin Dashboard – เลือกตั้งสภานักศึกษา 2570</title>
+<title>Admin Dashboard – เลือกตั้งสภานักศึกษา</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/css/style.css">
 <style>
@@ -21,6 +21,20 @@
 .adm-ibtn:disabled{opacity:.4;cursor:not-allowed}
 .adm-chip{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--g100);color:var(--g600);margin-left:8px;vertical-align:middle}
 #edit-banner{align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#1e3a8a;line-height:1.6}
+.adm-banner{border-radius:14px;padding:14px 18px;margin-bottom:24px;font-size:13.5px;line-height:1.7}
+.adm-banner.warn{background:#fffbeb;border:1px solid #fcd34d;color:#92400e}
+.adm-banner.good{background:#ecfdf5;border:1px solid #a7f3d0;color:#047857}
+.adm-help{font-size:13px;color:var(--g500);margin:-8px 0 16px;line-height:1.6}
+.adm-sep{border-top:1px solid var(--g200);margin:22px 0}
+.nw-row{display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--g100)}
+.nw-row:last-child{border-bottom:none}
+.nw-thumb{width:64px;height:48px;border-radius:8px;background:var(--g100);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px}
+.nw-thumb img{width:100%;height:100%;object-fit:cover}
+.nw-info{flex:1;min-width:0}
+.nw-info b{color:var(--navy);font-size:14px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.nw-info span{font-size:12px;color:var(--g500)}
+.nw-tag{display:inline-block;font-size:11px;font-weight:800;padding:1px 8px;border-radius:999px;margin-right:6px}
+.nw-tag.announce{background:#fef3c7;color:#92400e}.nw-tag.news{background:#dbeafe;color:var(--blue)}
 @media (max-width:640px){.adm-row{flex-wrap:wrap}.adm-row>div:nth-child(2){flex:1 1 calc(100% - 72px) !important}.adm-row .adm-ibtn{flex:1 1 calc(50% - 7px)}}
 </style>
 </head>
@@ -75,6 +89,44 @@
         <button onclick="clearClosingTime()" class="btn btn-ghost btn-sm">ล้างเวลา (ไม่ปิดอัตโนมัติ)</button>
       </div>
       <div id="closing-time-status" style="margin-top:10px;font-size:13px;color:var(--g500)"></div>
+    </div>
+
+    <div id="storage-banner" class="adm-banner" style="display:none"></div>
+
+    <div class="stat-card" style="margin-bottom:24px" id="site-info-card">
+      <h3 style="font-size:18px;margin-bottom:6px">🏷️ ข้อมูลหน้าเว็บ</h3>
+      <p class="adm-help">ช่องที่เว้นว่างไว้ หน้าเว็บจะซ่อนส่วนนั้นให้อัตโนมัติ (วันที่ เวลา ผู้ติดต่อ โซเชียล)</p>
+      <div class="r-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div><label class="label">ปี พ.ศ. (แสดงท้ายหน้า)</label><input id="si-year" class="input" maxlength="12" placeholder="เช่น 2569"></div>
+        <div><label class="label">คำขวัญท้ายหน้า (ว่าง = ใช้ค่าเดิม)</label><input id="si-tagline" class="input" maxlength="100" placeholder="เสียงของคุณ สร้างอนาคตของเรา"></div>
+        <div><label class="label">วันที่เลือกตั้ง</label><input id="si-date" class="input" maxlength="60" placeholder="เช่น 20 - 22 ตุลาคม 2569"></div>
+        <div><label class="label">เวลาที่เปิดให้ลงคะแนน</label><input id="si-time" class="input" maxlength="60" placeholder="เช่น 08:00 - 17:00 น."></div>
+        <div><label class="label">หน่วยงานผู้จัด</label><input id="si-org" class="input" maxlength="120" placeholder="เช่น สำนักงานสภานักศึกษา"></div>
+        <div><label class="label">อีเมลติดต่อ</label><input id="si-email" class="input" type="email" maxlength="120" placeholder="election@ubu.ac.th"></div>
+        <div><label class="label">ลิงก์ Facebook</label><input id="si-fb" class="input" maxlength="300" placeholder="https://facebook.com/..."></div>
+        <div><label class="label">ลิงก์ YouTube</label><input id="si-yt" class="input" maxlength="300" placeholder="https://youtube.com/..."></div>
+        <div><label class="label">ลิงก์ Instagram</label><input id="si-ig" class="input" maxlength="300" placeholder="https://instagram.com/..."></div>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="saveSiteInfo()">💾 บันทึกข้อมูลหน้าเว็บ</button>
+    </div>
+
+    <div class="stat-card" style="margin-bottom:24px" id="news-card">
+      <h3 style="font-size:18px;margin-bottom:6px">📰 ข่าวสารและประกาศ</h3>
+      <p class="adm-help">"ประกาศสำคัญ" แสดงใต้การ์ดนับถอยหลัง (ล่าสุด 2 รายการ) ส่วน "ข่าวสาร" แสดงกล่องขวาล่างของหน้าแรก (ล่าสุด 4 รายการ) รายการเก่ากว่านั้นดูได้ที่หน้า "ข่าวสารและประกาศ"</p>
+      <div id="news-list">กำลังโหลด...</div>
+      <div class="adm-sep"></div>
+      <h4 id="nf-title" style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:14px">➕ เพิ่มข่าว / ประกาศ</h4>
+      <div class="r-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div><label class="label">ประเภท</label><select id="nf-type" class="input"><option value="news">ข่าวสาร</option><option value="announce">ประกาศสำคัญ</option></select></div>
+        <div><label class="label">วันที่</label><input id="nf-date" class="input" type="date"></div>
+      </div>
+      <div style="margin-bottom:16px"><label class="label">หัวข้อ *</label><input id="nf-title-in" class="input" maxlength="150" placeholder="หัวข้อข่าวหรือประกาศ"></div>
+      <div style="margin-bottom:16px"><label class="label">รายละเอียด (ไม่บังคับ)</label><textarea id="nf-body" class="input" maxlength="4000" style="height:110px;resize:vertical" placeholder="ข้อความเต็ม ขึ้นบรรทัดใหม่ได้"></textarea></div>
+      <div style="margin-bottom:18px"><label class="label">รูปประกอบ (ไม่บังคับ)</label>
+        <input id="nf-image" type="file" accept="image/png,image/jpeg,image/gif,image/webp" onchange="newsPickImage(this)">
+        <div id="nf-preview" style="display:none;margin-top:10px;align-items:center;gap:12px"><img id="nf-preview-img" alt="" style="height:70px;border-radius:8px;border:1px solid var(--g200)"><button type="button" class="adm-ibtn" onclick="newsRemoveImage()">เอารูปออก</button></div>
+        <div style="font-size:12px;color:var(--g400);margin-top:6px">ระบบย่อรูปให้อัตโนมัติก่อนอัปโหลด · PNG, JPG, GIF, WEBP</div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button type="button" id="nf-submit" class="btn btn-primary" onclick="submitNews()">➕ เพิ่ม</button><button type="button" id="nf-cancel" class="btn btn-ghost" style="display:none" onclick="newsReset()">ยกเลิกการแก้ไข</button></div>
     </div>
 
     <!-- ผลคะแนน -->
@@ -224,6 +276,7 @@ async function loadAdminData(){
       </div>`;
     }).join('');
     updatePreview();
+    if(!window._extrasLoaded){window._extrasLoaded=true;loadAdminExtras();}
   }catch(e){console.error(e);}
 }
 
@@ -410,6 +463,97 @@ async function submitCandidate(){
     loadAdminData();
   }catch(err){Toast.error(err.message);}
   btn.disabled=false; btn.textContent=EDIT_ID!==null?'💾 บันทึกการแก้ไข':'➕ เพิ่มผู้สมัคร';
+}
+
+// ═════════ ที่เก็บข้อมูล / ข้อมูลหน้าเว็บ / ข่าวสาร ═════════
+let NEWS_ITEMS = [], NF_EDIT = null, NF_FILE = null, NF_REMOVE = false;
+async function loadAdminExtras() {
+  try {
+    const st = await api('/api/admin/storage-status'), b = document.getElementById('storage-banner');
+    b.style.display = 'block';
+    if (st.persistent) { b.className = 'adm-banner good'; b.innerHTML = `✅ ข่าวสารและข้อมูลหน้าเว็บถูกเก็บถาวรที่ GitHub <b>${esc(st.repo)}</b> (branch ${esc(st.branch)}) ไม่หายเมื่อรีสตาร์ทเซิร์ฟเวอร์`; }
+    else { b.className = 'adm-banner warn'; b.innerHTML = '⚠️ <b>ยังไม่ได้ตั้งที่เก็บข้อมูลถาวร</b> ข่าวสาร รูป และข้อมูลหน้าเว็บที่บันทึกตอนนี้ <b>อาจหายเมื่อเซิร์ฟเวอร์รีสตาร์ทหรือ Deploy ใหม่</b> (เช่นบน Render แผนฟรี) ตั้งค่าตามเอกสาร "วิธีตั้งที่เก็บข้อมูลถาวร" เพื่อให้ข้อมูลไม่หาย'; }
+  } catch (e) {}
+  try {
+    const si = await (await fetch('/api/site-info')).json();
+    const set = (id, v) => { document.getElementById(id).value = v || ''; };
+    set('si-year', si.year); set('si-tagline', si.tagline); set('si-date', si.electionDate); set('si-time', si.electionTime);
+    set('si-org', si.contactOrg); set('si-email', si.contactEmail); set('si-fb', si.facebook); set('si-yt', si.youtube); set('si-ig', si.instagram);
+  } catch (e) {}
+  loadNewsAdmin();
+  if (!document.getElementById('nf-date').value) document.getElementById('nf-date').value = new Date().toISOString().slice(0, 10);
+}
+async function saveSiteInfo() {
+  const g = id => document.getElementById(id).value.trim();
+  try {
+    const d = await api('/api/admin/site-info', { method: 'PUT', body: JSON.stringify({ year: g('si-year'), tagline: g('si-tagline'), electionDate: g('si-date'), electionTime: g('si-time'), contactOrg: g('si-org'), contactEmail: g('si-email'), facebook: g('si-fb'), youtube: g('si-yt'), instagram: g('si-ig') }) });
+    Toast.success(d.message);
+  } catch (err) { Toast.error(err.message); }
+}
+async function loadNewsAdmin() {
+  try {
+    const d = await (await fetch('/api/announcements?limit=200')).json(); NEWS_ITEMS = d.items || [];
+    document.getElementById('news-list').innerHTML = NEWS_ITEMS.length ? NEWS_ITEMS.map(n => `<div class="nw-row">
+      <div class="nw-thumb">${n.image ? `<img src="${esc(n.image)}" alt="">` : '📰'}</div>
+      <div class="nw-info"><b>${esc(n.title)}</b><span><span class="nw-tag ${n.type}">${n.type === 'announce' ? 'ประกาศสำคัญ' : 'ข่าวสาร'}</span>${esc(fmtDateTH(n.date))}</span></div>
+      <button class="adm-ibtn" onclick="newsEdit('${esc(n.id)}')">แก้ไข</button><button class="adm-ibtn" style="color:#dc2626" onclick="newsDelete('${esc(n.id)}')">ลบ</button></div>`).join('')
+      : '<div style="padding:18px 0;color:var(--g400);font-size:14px">ยังไม่มีข่าวสารหรือประกาศ</div>';
+    if (d.degraded) document.getElementById('news-list').insertAdjacentHTML('afterbegin', '<div class="adm-banner warn">โหลดรายการจากที่เก็บข้อมูลไม่สำเร็จชั่วคราว</div>');
+  } catch (e) { document.getElementById('news-list').textContent = 'โหลดรายการไม่สำเร็จ'; }
+}
+// ย่อรูปในเบราว์เซอร์ก่อนอัปโหลด (กว้างสุด 1200px, JPEG) ประหยัดพื้นที่ที่เก็บข้อมูลและโหลดเร็วขึ้น
+async function shrinkImage(file) {
+  if (file.type === 'image/gif' && file.size <= 3 * 1024 * 1024) return file;
+  try {
+    const bmp = await createImageBitmap(file), maxW = 1200, sc = Math.min(1, maxW / bmp.width);
+    const cv = document.createElement('canvas'); cv.width = Math.round(bmp.width * sc); cv.height = Math.round(bmp.height * sc);
+    const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(bmp, 0, 0, cv.width, cv.height);
+    const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.85));
+    return blob ? new File([blob], 'news.jpg', { type: 'image/jpeg' }) : file;
+  } catch (e) { return file; }
+}
+async function newsPickImage(input) {
+  const f = input.files && input.files[0]; if (!f) return;
+  NF_FILE = await shrinkImage(f); NF_REMOVE = false;
+  document.getElementById('nf-preview-img').src = URL.createObjectURL(NF_FILE); document.getElementById('nf-preview').style.display = 'flex';
+}
+function newsRemoveImage() {
+  NF_FILE = null; NF_REMOVE = NF_EDIT !== null; document.getElementById('nf-image').value = ''; document.getElementById('nf-preview').style.display = 'none';
+}
+function newsReset() {
+  NF_EDIT = null; NF_FILE = null; NF_REMOVE = false;
+  document.getElementById('nf-title').textContent = '➕ เพิ่มข่าว / ประกาศ'; document.getElementById('nf-submit').textContent = '➕ เพิ่ม'; document.getElementById('nf-cancel').style.display = 'none';
+  document.getElementById('nf-title-in').value = ''; document.getElementById('nf-body').value = ''; document.getElementById('nf-type').value = 'news';
+  document.getElementById('nf-date').value = new Date().toISOString().slice(0, 10); document.getElementById('nf-image').value = ''; document.getElementById('nf-preview').style.display = 'none';
+}
+function newsEdit(id) {
+  const n = NEWS_ITEMS.find(x => x.id === id); if (!n) return;
+  newsReset(); NF_EDIT = id;
+  document.getElementById('nf-title').textContent = '✏️ แก้ไขข่าว / ประกาศ'; document.getElementById('nf-submit').textContent = '💾 บันทึกการแก้ไข'; document.getElementById('nf-cancel').style.display = '';
+  document.getElementById('nf-type').value = n.type; document.getElementById('nf-date').value = n.date; document.getElementById('nf-title-in').value = n.title; document.getElementById('nf-body').value = n.body || '';
+  if (n.image) { document.getElementById('nf-preview-img').src = n.image; document.getElementById('nf-preview').style.display = 'flex'; }
+  document.getElementById('nf-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+async function submitNews() {
+  const title = document.getElementById('nf-title-in').value.trim();
+  if (!title) { Toast.error('กรุณากรอกหัวข้อ'); return; }
+  const fd = new FormData();
+  fd.append('type', document.getElementById('nf-type').value); fd.append('date', document.getElementById('nf-date').value);
+  fd.append('title', title); fd.append('body', document.getElementById('nf-body').value);
+  if (NF_FILE) fd.append('image', NF_FILE); if (NF_REMOVE) fd.append('removeImage', 'true');
+  const btn = document.getElementById('nf-submit'); btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+  try {
+    const res = await fetch(NF_EDIT ? `/api/admin/announcements/${NF_EDIT}` : '/api/admin/announcements', { method: NF_EDIT ? 'PUT' : 'POST', body: fd, credentials: 'same-origin' });
+    const d = await res.json(); if (!res.ok) throw new Error(d.error);
+    Toast.success(d.message); newsReset(); loadNewsAdmin();
+  } catch (err) { Toast.error(err.message); }
+  btn.disabled = false; btn.textContent = NF_EDIT ? '💾 บันทึกการแก้ไข' : '➕ เพิ่ม';
+}
+async function newsDelete(id) {
+  const n = NEWS_ITEMS.find(x => x.id === id); if (!n) return;
+  if (!confirm(`ลบ "${n.title}" ใช่ไหม?\nลบแล้วกู้คืนไม่ได้`)) return;
+  try { const d = await api('/api/admin/announcements/' + id, { method: 'DELETE' }); Toast.success(d.message); if (NF_EDIT === id) newsReset(); loadNewsAdmin(); }
+  catch (err) { Toast.error(err.message); }
 }
 </script>
 </body></html>

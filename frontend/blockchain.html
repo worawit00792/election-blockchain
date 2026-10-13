@@ -2,33 +2,65 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Blockchain Explorer – เลือกตั้งสภานักศึกษา 2570</title>
+<title>ตรวจสอบการบันทึกคะแนน – ระบบเลือกตั้ง มหาวิทยาลัยอุบลราชธานี</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body data-page="blockchain">
-<nav class="navbar"><div class="container navbar-inner">
-  <a href="/home.html" class="nav-logo"><img src="/images/ubu-logo.png" alt="UBU" style="height:48px;width:auto;object-fit:contain"><div><div class="logo-main">เลือกตั้งสภานักศึกษา</div><div class="logo-sub">มหาวิทยาลัยอุบลราชธานี 2570</div></div></a>
-  <button class="nav-toggle" id="nav-toggle" aria-label="เปิดเมนู"><span></span><span></span><span></span></button>
-  <div class="nav-links" id="nav-links"><a href="/home.html" class="nav-link">หน้าหลัก</a><a href="/candidates.html" class="nav-link">ผู้สมัคร</a><a href="/results.html" class="nav-link">ผลคะแนน</a><a href="/blockchain.html" class="nav-link active blockchain-link" style="display:none">Blockchain</a></div>
-  <div id="nav-auth" class="nav-auth"></div>
-</div></nav>
-<div class="bc-page page-body">
-  <div style="border-bottom:1px solid rgba(37,99,235,.18);padding:56px 0 48px">
-    <div class="container">
-      <h1 style="color:#fff;font-size:42px;margin-bottom:8px">Blockchain Explorer</h1>
-      <p style="color:rgba(255,255,255,.4)">Solidity Smart Contract on Hardhat Local Network</p>
-      <div style="margin-top:20px;background:rgba(255,255,255,.04);border:1px solid rgba(37,99,235,.2);border-radius:var(--r-md);padding:14px 18px">
-        <div style="color:rgba(255,255,255,.35);font-size:11px;margin-bottom:4px">CONTRACT ADDRESS</div>
-        <div id="contract-address" style="font-family:monospace;font-size:13px;color:var(--blue-glow)">Loading...</div>
-      </div>
+<div id="site-nav"></div>
+<div class="page-body">
+  <div class="page-band"><div class="container-md">
+    <h1>ตรวจสอบการบันทึกคะแนน</h1>
+    <p>ตรวจว่าคะแนนของคุณถูกบันทึกลงระบบจริง</p>
+  </div></div>
+  <div style="padding:28px 0 8px"><div class="container-md">
+    <div class="vf-card">
+      <label for="vf-input" class="vf-label">หมายเลขอ้างอิงการลงคะแนนของคุณ</label>
+      <div class="vf-row"><input id="vf-input" class="input" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="0x..." aria-describedby="vf-hint"><button id="vf-btn" class="btn btn-primary" type="button">ตรวจสอบ</button></div>
+      <div id="vf-hint" class="vf-hint">คัดลอกจากหน้า "ลงคะแนนสำเร็จ" ที่ขึ้นหลังโหวต (ขึ้นต้นด้วย 0x ตามด้วยตัวอักษร 64 ตัว)</div>
+      <div id="vf-result" aria-live="polite"></div>
     </div>
-  </div>
-  <div style="padding:40px 0"><div class="container-md">
-    <h3 style="color:rgba(255,255,255,.38);font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:24px">LATEST BLOCKS</h3>
-    <div id="blocks-container"><div style="text-align:center;padding:40px;color:rgba(255,255,255,.3)">กำลังโหลด...</div></div>
+    <details class="bc-tech">
+      <summary>ข้อมูลทางเทคนิคสำหรับผู้สนใจ</summary>
+      <div class="bc-tech-in">
+        <div class="bc-k">ที่อยู่ของระบบเลือกตั้งบน Blockchain (Contract)</div>
+        <div id="contract-address" class="bc-addr">กำลังโหลด...</div>
+        <div class="bc-k" style="margin-top:20px">บล็อกล่าสุดที่บันทึก</div>
+        <div id="blocks-container"><div style="text-align:center;padding:24px;color:var(--g400)">กำลังโหลด...</div></div>
+      </div>
+    </details>
   </div></div>
 </div>
+<div id="site-footer"></div>
 <div id="toast-container" class="toast-wrap"></div>
 <script src="/js/main.js"></script>
+<script>
+(function () {
+  const input = document.getElementById('vf-input'), btn = document.getElementById('vf-btn'), out = document.getElementById('vf-result');
+  const card = (cls, ic, t, d) => { out.innerHTML = `<div class="vf-res ${cls}"><div class="vf-ic">${ic}</div><div><div class="vf-t">${t}</div><div class="vf-d">${d}</div></div></div>`; };
+  async function check() {
+    const h = input.value.trim();
+    if (!h) { card('warn', '✍️', 'กรุณาใส่หมายเลขอ้างอิง', 'วางหมายเลขที่คัดลอกจากหน้า "ลงคะแนนสำเร็จ"'); return; }
+    btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
+    try {
+      const r = await fetch('/api/verify/' + encodeURIComponent(h)), d = await r.json();
+      if (!r.ok) card('warn', '⚠️', 'ตรวจสอบไม่ได้', UBU_UI.esc(d.error || 'เกิดข้อผิดพลาด'));
+      else if (!d.found) card('warn', '🔎', 'ไม่พบหมายเลขอ้างอิงนี้', 'ตรวจสอบว่าคัดลอกมาครบทุกตัวอักษร หากเพิ่งลงคะแนน ให้รอสักครู่แล้วลองใหม่');
+      else if (!d.isElection) card('warn', 'ℹ️', 'หมายเลขนี้ไม่ใช่การบันทึกของระบบเลือกตั้งนี้', 'พบรายการนี้บนเครือข่าย แต่ไม่ได้ส่งถึงระบบเลือกตั้งของมหาวิทยาลัย');
+      else if (!d.isVote) card('warn', 'ℹ️', 'หมายเลขนี้เป็นรายการของระบบเลือกตั้ง แต่ไม่ใช่การลงคะแนน', 'เช่น การเพิ่มผู้สมัคร หรือการเปิด-ปิดการเลือกตั้ง');
+      else if (!d.success) card('bad', '❌', 'การบันทึกนี้ไม่สำเร็จ', 'รายการนี้ถูกส่งแล้วแต่ไม่ได้ถูกนับเป็นคะแนน');
+      else {
+        const t = d.timestamp ? new Date(d.timestamp) : null;
+        const when = t ? t.toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' }) + ' น.' : '-';
+        card('good', '✅', 'พบการบันทึกคะแนนนี้ในระบบ', `บันทึกในบล็อกที่ <b>#${d.blockNumber}</b> เมื่อ <b>${UBU_UI.esc(when)}</b> · ยืนยันแล้ว ${d.confirmations} บล็อก<br><span style="color:#64748b">ระบบนี้แสดงเฉพาะว่ามีการบันทึกจริง ไม่แสดงว่าเลือกใคร</span>`);
+      }
+    } catch (e) { card('warn', '⚠️', 'ตรวจสอบไม่ได้', 'เชื่อมต่อระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'); }
+    btn.disabled = false; btn.textContent = 'ตรวจสอบ';
+  }
+  btn.addEventListener('click', check);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+  const pre = new URLSearchParams(location.search).get('tx');
+  if (pre) { input.value = pre; check(); }
+})();
+</script>
 </body></html>

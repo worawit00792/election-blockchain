@@ -2,24 +2,15 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ลงคะแนนสำเร็จ – สภานักศึกษา 2570</title>
+<title>ลงคะแนนสำเร็จ – สภานักศึกษา</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body data-page="success">
-<nav class="navbar"><div class="container navbar-inner">
-  <a href="/home.html" class="nav-logo"><img src="/images/ubu-logo.png" alt="UBU" style="height:48px;width:auto;object-fit:contain"><div><div class="logo-main">เลือกตั้งสภานักศึกษา</div><div class="logo-sub">มหาวิทยาลัยอุบลราชธานี 2570</div></div></a>
-  <button class="nav-toggle" id="nav-toggle" aria-label="เปิดเมนู"><span></span><span></span><span></span></button>
-  <div class="nav-links" id="nav-links">
-    <a href="/home.html" class="nav-link">หน้าหลัก</a>
-    <a href="/candidates.html" class="nav-link">ผู้สมัคร</a>
-    <a href="/results.html" class="nav-link">ผลคะแนน</a>
-  </div>
-  <div id="nav-auth" class="nav-auth"></div>
-</div></nav>
+<div id="site-nav"></div>
 
 <style>
-.sx-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--navy),#1e3a8a);padding:46px 0 92px;text-align:center}
+.sx-hero{position:relative;overflow:hidden;background:linear-gradient(180deg,#d9e8ff 0%,#eaf3ff 80%,var(--g50) 100%);padding:46px 0 92px;text-align:center}
 #sx-conf{position:absolute;inset:0;pointer-events:none}
 #sx-conf i{position:absolute;border-radius:2px;opacity:.85;animation:sxIn .9s ease-out both}
 @keyframes sxIn{from{opacity:0;transform:translateY(-26px)}to{opacity:.85}}
@@ -65,8 +56,8 @@
     <div id="sx-conf" aria-hidden="true"></div>
     <div style="position:relative">
       <div class="sx-ring" aria-hidden="true">✓</div>
-      <h1 style="color:#fff;font-size:36px;font-weight:800;margin-top:26px">ลงคะแนนสำเร็จ!</h1>
-      <p style="color:rgba(255,255,255,.75);font-size:15px;margin-top:6px">คะแนนของคุณถูกบันทึกแล้ว</p>
+      <h1 style="color:var(--navy);font-size:36px;font-weight:800;margin-top:26px">ลงคะแนนสำเร็จ!</h1>
+      <p style="color:#3b5a96;font-size:15px;margin-top:6px">คะแนนของคุณถูกบันทึกแล้ว</p>
     </div>
   </div>
   <div class="sx-wrap">
@@ -95,6 +86,7 @@
         <div class="sx-sec">หลักฐานการลงคะแนน</div>
         <div class="sx-hash"><code id="tx-hash">-</code><button type="button" id="copy-btn">คัดลอก</button></div>
         <div id="block-info" style="margin-top:8px;font-size:12px;color:var(--g500)"></div>
+        <a id="verify-link" href="/blockchain.html" style="display:inline-block;margin-top:6px;font-size:13px;font-weight:700;color:var(--blue);text-decoration:none">ตรวจสอบการบันทึกนี้ →</a>
         <div class="sx-btns">
           <a href="/results.html" class="btn btn-primary btn-lg">ดูผลคะแนน →</a>
           <a href="/home.html" class="btn btn-ghost btn-lg">กลับหน้าหลัก</a>
@@ -103,12 +95,14 @@
     </div>
   </div>
 </div>
+<div id="site-footer"></div>
 <div id="toast-container" class="toast-wrap"></div>
 <script src="/js/main.js"></script>
 <script>
 const params=new URLSearchParams(location.search);
 const tx=params.get('tx')||'-', block=params.get('block');
 document.getElementById('tx-hash').textContent=tx;
+if(/^0x[0-9a-fA-F]{64}$/.test(tx))document.getElementById('verify-link').href='/blockchain.html?tx='+tx;else document.getElementById('verify-link').style.display='none';
 if(block&&block!=='undefined')document.getElementById('block-info').textContent=`บันทึกแล้วในบล็อก #${block}`;
 document.getElementById('copy-btn').onclick=async()=>{
   try{await navigator.clipboard.writeText(tx);Toast.success('คัดลอกหมายเลขอ้างอิงแล้ว');}

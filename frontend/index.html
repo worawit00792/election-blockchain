@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>เลือกตั้งสภานักศึกษา มหาวิทยาลัยอุบลราชธานี 2570</title>
+<title>เลือกตั้งสภานักศึกษา มหาวิทยาลัยอุบลราชธานี</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Noto+Sans+Thai:wght@400;700;900&display=swap');
@@ -90,12 +90,12 @@ body{background:#0a0a3e;font-family:'Noto Sans Thai',sans-serif}
   <div class="hero-content">
     <img src="/images/ubu-logo.png" alt="UBU" class="hero-logo">
     <div class="hero-title">เลือกตั้งสภานักศึกษา</div>
-    <span class="hero-subtitle">มหาวิทยาลัยอุบลราชธานี 2570</span>
+    <span class="hero-subtitle" id="idx-sub">มหาวิทยาลัยอุบลราชธานี</span>
     <div class="hero-desc">ร่วมกันสร้างมหาวิทยาลัยที่ดีกว่า ด้วยเสียงของคุณ</div>
     <a href="/home.html" class="btn-hero">🗳️ ลงคะแนนเลยตอนนี้</a>
-    <div class="hero-date">
+    <div class="hero-date" id="idx-date" style="display:none">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      เปิดรับลงคะแนน 1 – 7 มิถุนายน 2570
+      <span id="idx-date-text"></span>
     </div>
   </div>
 </div>
@@ -158,5 +158,12 @@ for(let i=0;i<120;i++){
     }
   });
 })();
+</script>
+<script>
+fetch('/api/site-info').then(r => r.ok ? r.json() : {}).then(i => {
+  if (i.year) document.getElementById('idx-sub').textContent = 'มหาวิทยาลัยอุบลราชธานี ' + i.year;
+  const t = [i.electionDate && 'วันที่เลือกตั้ง ' + i.electionDate, i.electionTime].filter(Boolean).join(' · ');
+  if (t) { document.getElementById('idx-date-text').textContent = t; document.getElementById('idx-date').style.display = ''; }
+}).catch(() => {});
 </script>
 </body></html>

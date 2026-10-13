@@ -6,6 +6,7 @@ const { ethers } = require("ethers");
 const path       = require("path");
 const fs         = require("fs");
 const multer     = require("multer");
+const dataStore = require("./storage");   // ที่เก็บข้อมูลถาวร (ข่าวสาร / ข้อมูลหน้าเว็บ / รูป)
 // ─── Multer (อัพโหลดรูปผู้สมัคร) ──────────────────────────
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -86,8 +87,8 @@ async function initBlockchain() {
       provider = new ethers.JsonRpcProvider(RPC_URL);
       wallet   = process.env.PRIVATE_KEY ? new ethers.Wallet(process.env.PRIVATE_KEY, provider) : await provider.getSigner(0);
     }
-    // แก้บั๊กโหวตพร้อมกัน: กระเป๋ากลางใบเดียวต้องส่งธุรกรรมให้ทุกคน (ค่าธรรมเนียมผู้โหวต / เพิ่มผู้สมัคร / ปิด-เปิด)
-    // ถ้าไม่จัดลำดับ nonce เอง ผู้โหวตหลายคนที่โหวตใกล้กันจะชนกัน ("nonce has already been used") และโหวตไม่สำเร็จ
+    // ★ ครอบกระเป๋ากลางด้วย NonceManager: กระเป๋ากลางใบเดียวต้องส่งธุรกรรมให้ทุกคน (ค่าธรรมเนียมผู้โหวต / เพิ่มผู้สมัคร / ปิด-เปิด)
+    //   ถ้าไม่จัดลำดับ nonce เอง คนโหวตพร้อมกันหลายคนจะชนกัน ("nonce has already been used") และโหวตไม่สำเร็จ
     const rawWallet = wallet, nm = new ethers.NonceManager(rawWallet), sendOnce = nm.sendTransaction.bind(nm);
     let sendQueue = Promise.resolve();   // ส่งทีละธุรกรรมตามลำดับ (รอแค่ให้ส่งสำเร็จ ไม่รอให้ขุดบล็อก) กันธุรกรรมถึงโหนดสลับลำดับ
     nm.sendTransaction = tx => {
@@ -330,6 +331,146 @@ app.put("/api/admin/update-candidate/:id", requireAdmin, upload.single("photo"),
     saveExtra();
     res.json({ ok: true, message: "บันทึกการแก้ไขแล้ว" });
   } catch (err) { removeUploaded(req); res.status(500).json({ error: err.message }); }
+});
+
+// ═══════════════ ข่าวสาร / ประกาศ และ ข้อมูลหน้าเว็บ (เก็บผ่าน storage.js) ═══════════════
+const ANN_FILE = "announcements.json", INFO_FILE = "site-info.json";
+const uploadMem = multer({ storage: multer.memoryStorage(), limits: { fileSize: 3 * 1024 * 1024, files: 1 } });
+function uploadNewsImage(req, res, next) {
+  uploadMem.single("image")(req, res, err => {
+    if (err) return res.status(err.code === "LIMIT_FILE_SIZE" ? 413 : 400).json({ error: err.code === "LIMIT_FILE_SIZE" ? "รูปใหญ่เกิน 3MB" : "อัปโหลดรูปไม่สำเร็จ" });
+    next();
+  });
+}
+function sniffImage(b) {                       // ตรวจชนิดรูปจากเนื้อไฟล์จริง ไม่เชื่อนามสกุลที่ผู้ใช้ส่งมา
+  if (!b || b.length < 12) return null;
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "png";
+  if (b.slice(0, 4).toString() === "GIF8") return "gif";
+  if (b.slice(0, 4).toString() === "RIFF" && b.slice(8, 12).toString() === "WEBP") return "webp";
+  return null;
+}
+const cleanStr = (v, max) => String(v == null ? "" : v).replace(/\r\n/g, "\n").trim().slice(0, max);
+const isYMD = x => /^\d{4}-\d{2}-\d{2}$/.test(x) && !isNaN(Date.parse(x));
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+async function loadAnn() { const d = await dataStore.readJson(ANN_FILE, { items: [] }); return Array.isArray(d.items) ? d.items : []; }
+const saveAnn = items => dataStore.writeJson(ANN_FILE, { items });
+const publicAnn = i => ({ id: i.id, type: i.type, title: i.title, body: i.body || "", date: i.date, image: i.image ? "/media/" + i.image : null });
+function readAnnFields(req, existing) {
+  const type = req.body.type !== undefined ? cleanStr(req.body.type, 10) : (existing && existing.type) || "news";
+  const title = req.body.title !== undefined ? cleanStr(req.body.title, 150) : (existing && existing.title) || "";
+  const body = req.body.body !== undefined ? cleanStr(req.body.body, 4000) : (existing && existing.body) || "";
+  const date = req.body.date !== undefined ? cleanStr(req.body.date, 10) : (existing && existing.date) || new Date().toISOString().slice(0, 10);
+  if (type !== "news" && type !== "announce") return { error: "ประเภทต้องเป็น ข่าวสาร หรือ ประกาศสำคัญ" };
+  if (!title) return { error: "กรุณากรอกหัวข้อ" };
+  if (!isYMD(date)) return { error: "วันที่ไม่ถูกต้อง" };
+  return { type, title, body, date };
+}
+function sortAnn(items) { return items.sort((a, b) => b.date.localeCompare(a.date) || String(b.createdAt || "").localeCompare(String(a.createdAt || ""))); }
+
+app.get("/api/announcements", async (req, res) => {
+  try {
+    let items = await loadAnn();
+    if (req.query.type === "news" || req.query.type === "announce") items = items.filter(i => i.type === req.query.type);
+    sortAnn(items);
+    const limit = parseInt(req.query.limit); if (limit > 0) items = items.slice(0, Math.min(limit, 200));
+    res.json({ items: items.map(publicAnn) });
+  } catch (e) { res.json({ items: [], degraded: true }); }        // ที่เก็บข้อมูลมีปัญหา: หน้าเว็บยังเปิดได้ แค่ไม่มีข่าว
+});
+app.post("/api/admin/announcements", requireAdmin, uploadNewsImage, async (req, res) => {
+  let imgName = null;
+  try {
+    const f = readAnnFields(req, null); if (f.error) return res.status(400).json({ error: f.error });
+    const items = await loadAnn();
+    if (items.length >= 200) return res.status(400).json({ error: "มีข่าวครบ 200 รายการแล้ว กรุณาลบรายการเก่าก่อน" });
+    const id = newId(), item = { id, type: f.type, title: f.title, body: f.body, date: f.date, image: null, createdAt: new Date().toISOString() };
+    if (req.file) {
+      const ext = sniffImage(req.file.buffer); if (!ext) return res.status(400).json({ error: "รองรับเฉพาะไฟล์รูป JPG, PNG, GIF, WEBP" });
+      imgName = `news-${id}.${ext}`; await dataStore.saveMedia(imgName, req.file.buffer); item.image = imgName;
+    }
+    items.push(item);
+    try { await saveAnn(items); } catch (e) { if (imgName) dataStore.deleteMedia(imgName).catch(() => {}); throw e; }
+    res.json({ ok: true, item: publicAnn(item), message: "เพิ่มข่าวแล้ว" });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.put("/api/admin/announcements/:id", requireAdmin, uploadNewsImage, async (req, res) => {
+  try {
+    const items = await loadAnn(); const idx = items.findIndex(i => i.id === req.params.id);
+    if (idx < 0) return res.status(404).json({ error: "ไม่พบรายการนี้" });
+    const cur = items[idx], f = readAnnFields(req, cur); if (f.error) return res.status(400).json({ error: f.error });
+    const next = Object.assign({}, cur, f); let newImg = null, dropOld = null;
+    if (req.file) {
+      const ext = sniffImage(req.file.buffer); if (!ext) return res.status(400).json({ error: "รองรับเฉพาะไฟล์รูป JPG, PNG, GIF, WEBP" });
+      newImg = `news-${cur.id}-${Date.now().toString(36)}.${ext}`; await dataStore.saveMedia(newImg, req.file.buffer);
+      dropOld = cur.image; next.image = newImg;
+    } else if (req.body.removeImage === "true" && cur.image) { dropOld = cur.image; next.image = null; }
+    items[idx] = next;
+    try { await saveAnn(items); } catch (e) { if (newImg) dataStore.deleteMedia(newImg).catch(() => {}); throw e; }
+    if (dropOld) dataStore.deleteMedia(dropOld).catch(() => {});
+    res.json({ ok: true, item: publicAnn(next), message: "บันทึกการแก้ไขแล้ว" });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.delete("/api/admin/announcements/:id", requireAdmin, async (req, res) => {
+  try {
+    const items = await loadAnn(); const idx = items.findIndex(i => i.id === req.params.id);
+    if (idx < 0) return res.status(404).json({ error: "ไม่พบรายการนี้" });
+    const [gone] = items.splice(idx, 1); await saveAnn(items);
+    if (gone.image) dataStore.deleteMedia(gone.image).catch(() => {});
+    res.json({ ok: true, message: "ลบแล้ว" });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.get("/media/:name", async (req, res) => {
+  try {
+    const m = await dataStore.readMedia(req.params.name);
+    if (!m) return res.status(404).end();
+    res.set({ "Content-Type": m.contentType, "Cache-Control": "public, max-age=86400", "X-Content-Type-Options": "nosniff" }); res.send(m.buffer);
+  } catch (e) { res.status(502).end(); }
+});
+// ข้อมูลหน้าเว็บ (ปี วันที่ เวลา ติดต่อ โซเชียล) ว่างได้ทุกช่อง ช่องที่ว่างหน้าเว็บจะซ่อนส่วนนั้น
+const INFO_DEFAULT = { year: "", electionDate: "", electionTime: "", contactOrg: "", contactEmail: "", facebook: "", youtube: "", instagram: "", tagline: "" };
+app.get("/api/site-info", async (req, res) => {
+  try { res.json(Object.assign({}, INFO_DEFAULT, await dataStore.readJson(INFO_FILE, {}))); }
+  catch (e) { res.json(Object.assign({}, INFO_DEFAULT)); }
+});
+app.put("/api/admin/site-info", requireAdmin, async (req, res) => {
+  try {
+    const b = req.body || {}, out = {};
+    const lim = { year: 12, electionDate: 60, electionTime: 60, contactOrg: 120, contactEmail: 120, tagline: 100, facebook: 300, youtube: 300, instagram: 300 };
+    for (const k of Object.keys(lim)) out[k] = cleanStr(b[k], lim[k]);
+    if (out.contactEmail && !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(out.contactEmail)) return res.status(400).json({ error: "รูปแบบอีเมลไม่ถูกต้อง" });
+    for (const k of ["facebook", "youtube", "instagram"]) if (out[k] && !/^https?:\/\/[^\s<>"]+$/i.test(out[k])) return res.status(400).json({ error: `ลิงก์ ${k} ต้องขึ้นต้นด้วย http:// หรือ https://` });
+    await dataStore.writeJson(INFO_FILE, out);
+    res.json({ ok: true, message: "บันทึกข้อมูลหน้าเว็บแล้ว", info: out });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.get("/api/admin/storage-status", requireAdmin, (req, res) => res.json(dataStore.status()));
+
+// ตรวจสอบหมายเลขอ้างอิง (Transaction Hash) ว่าถูกบันทึกในระบบเลือกตั้งนี้จริงไหม
+// ตอบเฉพาะ: พบหรือไม่ / บล็อกที่บันทึก / เวลา  — ไม่เปิดเผยว่าเลือกใคร หรืออีเมลของใคร
+const verifyHits = new Map();
+function verifyRateLimited(ip) {
+  const now = Date.now(), arr = (verifyHits.get(ip) || []).filter(t => now - t < 60000);
+  arr.push(now); verifyHits.set(ip, arr);
+  if (verifyHits.size > 5000) for (const [k, v] of verifyHits) if (!v.length || now - v[v.length - 1] > 60000) verifyHits.delete(k);
+  return arr.length > 40;
+}
+app.get("/api/verify/:hash", async (req, res) => {
+  const ip = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+  if (verifyRateLimited(ip)) return res.status(429).json({ error: "ตรวจสอบบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่" });
+  if (!provider || !contract) return res.status(503).json({ error: "ระบบ Blockchain ยังไม่พร้อม" });
+  const h = String(req.params.hash || "").trim();
+  if (!/^0x[0-9a-fA-F]{64}$/.test(h)) return res.status(400).json({ error: "หมายเลขอ้างอิงไม่ถูกต้อง ต้องขึ้นต้นด้วย 0x ตามด้วยตัวอักษร 64 ตัว" });
+  try {
+    const receipt = await provider.getTransactionReceipt(h);
+    if (!receipt) return res.json({ found: false });
+    const isElection = !!(receipt.to && contractAddress && receipt.to.toLowerCase() === contractAddress.toLowerCase());
+    if (!isElection) return res.json({ found: true, isElection: false });
+    let isVote = false;
+    for (const log of receipt.logs) { try { const p = contract.interface.parseLog(log); if (p && p.name === "VoteCast") isVote = true; } catch (_) {} }
+    const block = await provider.getBlock(receipt.blockNumber), latest = await provider.getBlockNumber();
+    res.json({ found: true, isElection: true, isVote, success: receipt.status === 1, blockNumber: receipt.blockNumber,
+               timestamp: block ? new Date(block.timestamp * 1000).toISOString() : null, confirmations: Math.max(0, latest - receipt.blockNumber + 1) });
+  } catch (e) { res.status(500).json({ error: "ตรวจสอบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" }); }
 });
 app.get("/api/blockchain", async (req, res) => {
   if (!provider || !contract) return res.json({ blocks: [], contractAddress: null, isValid: false });

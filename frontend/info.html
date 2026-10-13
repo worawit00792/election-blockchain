@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ข้อมูลการเลือกตั้ง – ระบบเลือกตั้ง มหาวิทยาลัยอุบลราชธานี</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="info">
+<div id="site-nav"></div>
+<div class="page-body">
+  <div class="page-band"><div class="container-md"><h1>ข้อมูลการเลือกตั้ง</h1><p>ทุกอย่างที่ควรรู้ก่อนไปใช้สิทธิ์</p></div></div>
+  <div style="padding:28px 0 12px"><div class="container-md">
+
+    <section class="in-sec"><h2>กำหนดการ</h2>
+      <div id="in-schedule" class="in-grid"></div>
+    </section>
+
+    <section class="in-sec"><h2>ใครมีสิทธิ์ลงคะแนน</h2>
+      <div class="in-card"><p>ผู้ที่เข้าสู่ระบบด้วย <b>บัญชี Google ของมหาวิทยาลัย (ลงท้ายด้วย @ubu.ac.th)</b> และยังไม่เคยลงคะแนนในการเลือกตั้งนี้ ไม่ต้องลงทะเบียนล่วงหน้า</p></div>
+    </section>
+
+    <section class="in-sec" id="steps"><h2>ขั้นตอนการเลือกตั้ง</h2>
+      <div class="in-steps">
+        <div class="in-step"><div class="in-n">1</div><div><b>เข้าสู่ระบบ</b><p>กดปุ่ม "เข้าสู่ระบบ" แล้วเลือกบัญชี Google ที่ลงท้ายด้วย @ubu.ac.th</p></div></div>
+        <div class="in-step"><div class="in-n">2</div><div><b>ศึกษาผู้สมัคร</b><p>ดูข้อมูล ประวัติ และนโยบายของแต่ละทีมได้ที่หน้า "ผู้สมัคร"</p></div></div>
+        <div class="in-step"><div class="in-n">3</div><div><b>เลือกและกดค้างเพื่อยืนยัน</b><p>แตะการ์ดทีมที่คุณไว้วางใจ แล้วกดปุ่ม "กดค้างเพื่อยืนยัน" ที่แถบด้านล่างค้างไว้ประมาณ 1.5 วินาที เพื่อกันการกดพลาด</p></div></div>
+        <div class="in-step"><div class="in-n">4</div><div><b>รับหมายเลขอ้างอิง</b><p>เมื่อคะแนนถูกบันทึก ระบบแสดงหมายเลขอ้างอิง คัดลอกเก็บไว้หากต้องการตรวจสอบภายหลัง</p></div></div>
+      </div>
+      <div style="margin-top:18px"><a id="in-cta" class="btn btn-primary btn-lg" href="/login.html?next=/vote.html" style="display:inline-flex;width:auto">🗳️ เข้าสู่ระบบเพื่อไปใช้สิทธิ์</a></div>
+    </section>
+
+    <section class="in-sec"><h2>กติกาสำคัญ</h2>
+      <div class="in-grid in-grid-2">
+        <div class="in-card"><div class="in-ic">🔐</div><b>1 บัญชี 1 เสียง</b><p>ระบบตรวจทั้งอีเมลและกระเป๋าบนระบบบันทึก ไม่สามารถลงคะแนนซ้ำ แม้เปลี่ยนเครื่องหรือเบราว์เซอร์</p></div>
+        <div class="in-card"><div class="in-ic">🧾</div><b>ลงคะแนนแล้วแก้ไขไม่ได้</b><p>คะแนนถูกบันทึกอย่างถาวร ไม่มีฟังก์ชันแก้หรือลบคะแนน แม้แต่ผู้ดูแลระบบ จึงควรตรวจสอบให้แน่ใจก่อนยืนยัน</p></div>
+        <div class="in-card"><div class="in-ic">⏳</div><b>ผลคะแนนประกาศหลังปิดรับ</b><p>ระหว่างเปิดให้ลงคะแนน หน้าเว็บจะไม่แสดงคะแนนของแต่ละทีม ผลจะแสดงเมื่อปิดรับคะแนนแล้ว</p></div>
+        <div class="in-card"><div class="in-ic">⏰</div><b>ปิดรับตามเวลาที่ผู้จัดกำหนด</b><p>เมื่อถึงเวลาปิดรับที่ผู้จัดตั้งไว้ ระบบจะปิดรับคะแนนอัตโนมัติ และไม่สามารถลงคะแนนได้อีก</p></div>
+      </div>
+    </section>
+
+    <section class="in-sec"><h2>ตรวจสอบการบันทึกคะแนน</h2>
+      <div class="in-card"><p>เมื่อลงคะแนนแล้ว คุณจะได้หมายเลขอ้างอิง นำไปตรวจสอบที่หน้า "ตรวจสอบการบันทึกคะแนน" เพื่อดูว่าคะแนนถูกบันทึกจริง ในบล็อกใด และเมื่อไหร่ (หน้านี้ไม่แสดงว่าเลือกใคร)</p><div style="margin-top:14px"><a class="btn btn-ghost" href="/blockchain.html">ไปหน้าตรวจสอบ →</a></div></div>
+    </section>
+
+    <section class="in-sec" id="in-contact" style="display:none"><h2>ติดต่อผู้จัด</h2><div class="in-card" id="in-contact-body"></div></section>
+  </div></div>
+</div>
+<div id="site-footer"></div>
+<div id="toast-container" class="toast-wrap"></div>
+<script src="/js/main.js"></script>
+<script>
+(async function () {
+  const esc = UBU_UI.esc;
+  const [info, stats, me] = await Promise.all([getSiteInfo(), api('/api/stats').catch(() => null), api('/api/me').catch(() => ({ loggedIn: false }))]);
+  const rows = [];
+  if (info.electionDate) rows.push(['📅', 'วันที่เลือกตั้ง', info.electionDate]);
+  if (info.electionTime) rows.push(['🕗', 'เวลา', info.electionTime]);
+  if (stats && stats.closingTime) rows.push(['⏰', 'ปิดรับคะแนน', new Date(stats.closingTime).toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' }) + ' น.']);
+  if (stats) rows.push([stats.isOpen === false ? '🔴' : '🟢', 'สถานะตอนนี้', stats.isOpen === false ? 'ปิดรับคะแนนแล้ว' : 'เปิดรับคะแนนอยู่']);
+  document.getElementById('in-schedule').innerHTML = rows.length > (stats ? 1 : 0)
+    ? rows.map(([ic, k, v]) => `<div class="in-card in-row"><div class="in-ic">${ic}</div><div><small>${k}</small><b>${esc(v)}</b></div></div>`).join('')
+    : '<div class="in-card" style="grid-column:1/-1"><p>ผู้จัดจะประกาศกำหนดการผ่านหน้า <a href="/news.html">ข่าวสารและประกาศ</a></p></div>' + (stats ? `<div class="in-card in-row"><div class="in-ic">${stats.isOpen === false ? '🔴' : '🟢'}</div><div><small>สถานะตอนนี้</small><b>${stats.isOpen === false ? 'ปิดรับคะแนนแล้ว' : 'เปิดรับคะแนนอยู่'}</b></div></div>` : '');
+  const cta = document.getElementById('in-cta');
+  if (stats && stats.isOpen === false) { cta.href = '/results.html'; cta.textContent = '📊 ดูผลคะแนน'; }
+  else if (me.loggedIn && me.hasVoted) { cta.href = '/results.html'; cta.textContent = '✅ คุณใช้สิทธิ์แล้ว ดูผลคะแนน'; }
+  else if (me.loggedIn) { cta.href = '/vote.html'; cta.textContent = '🗳️ ไปลงคะแนน'; }
+  if (info.contactOrg || info.contactEmail) {
+    document.getElementById('in-contact').style.display = '';
+    document.getElementById('in-contact-body').innerHTML = `${info.contactOrg ? `<p><b>${esc(info.contactOrg)}</b></p>` : ''}${info.contactEmail ? `<p>✉ <a href="mailto:${esc(info.contactEmail)}">${esc(info.contactEmail)}</a></p>` : ''}`;
+  }
+  if (location.hash === '#steps') setTimeout(() => document.getElementById('steps').scrollIntoView({ behavior: 'smooth' }), 150);
+})();
+</script>
+</body></html>
