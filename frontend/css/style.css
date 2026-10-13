@@ -518,3 +518,11 @@ body.has-vote-bar .page-body{padding-bottom:130px}
   .in-grid-2{grid-template-columns:1fr}
   .in-step{padding:16px}
 }
+
+/* ── แถบหัวหน้าหลักใช้รูปจริง + ไอคอนทางลัดเป็นรูป ── */
+.hm-hero{background:#d9e8ff url('/images/hero-home.jpg') right bottom/cover no-repeat}
+.hm-q-ic{width:52px;height:52px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0}
+@media (max-width:900px){
+  .hm-hero{background:url('/images/hero-home.jpg') center bottom/100% auto no-repeat,linear-gradient(180deg,#d9e8ff 0%,#eaf3ff 100%);min-height:0;padding-bottom:calc((100vw - 32px) / 3 + 16px)}
+  .hm-hero-text{padding-bottom:8px}
+}

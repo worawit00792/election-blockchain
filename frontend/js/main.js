@@ -114,7 +114,6 @@ function renderChrome() {
       <button class="nav-toggle" id="nav-toggle" aria-label="เปิดเมนู"><span></span><span></span><span></span></button>
       <div class="nav-links" id="nav-links">
         ${NAV_ITEMS.map(([h, t]) => `<a href="${h}" class="nav-link${isActive(h) ? ' active' : ''}">${t}</a>`).join('')}
-        <a href="/blockchain.html" class="nav-link blockchain-link" style="display:none">Blockchain</a>
       </div>
       <div id="nav-auth" class="nav-auth"></div>
     </div></nav>`;
@@ -173,9 +172,8 @@ async function initNavbar() {
     const me = await api('/api/me');
     const authEl = document.getElementById('nav-auth');
     if (!authEl) return;
-    // Show blockchain link only for admin
+    // แสดงลิงก์ผู้ดูแลเฉพาะแอดมิน
     if (me.isAdmin) {
-      document.querySelectorAll('.blockchain-link').forEach(el => el.style.display = '');
       document.querySelectorAll('#admin-nav-link').forEach(el => el.style.display = '');
     }
     // ปุ่ม "ลงคะแนนเลยตอนนี้" หน้า home — ถ้า login แล้วไปหน้าโหวตเลย ไม่ต้อง login ซ้ำ
